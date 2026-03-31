@@ -4,7 +4,6 @@ __pycache__/
 .ruff_cache/
 venv/
 .venv/
-# IDE, Dev Containers e Caches Locais
 .vscode-server/
 .cache/
 .copilot/
