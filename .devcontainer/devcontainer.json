@@ -9,11 +9,21 @@
     "vscode": {
       "extensions": [
         "ms-python.python",
-        "charliermarsh.ruff"
+        "charliermarsh.ruff",
+        "tamasfe.even-better-toml"
       ],
       "settings": {
         "python.defaultInterpreterPath": "/usr/local/bin/python",
-        "editor.formatOnSave": true
+        // Ativa o Ruff como formatador padrão
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.formatOnSave": true,
+          "editor.codeActionsOnSave": {
+            "source.fixAll.ruff": "explicit",
+            "source.organizeImports.ruff": "explicit"
+          }
+        },
+        "ruff.nativeServer": true
       }
     }
   },
