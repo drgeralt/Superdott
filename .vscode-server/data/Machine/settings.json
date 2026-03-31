@@ -1,0 +1,9 @@
+{
+	"python.defaultInterpreterPath": "/usr/local/bin/python",
+	"editor.formatOnSave": true,
+	"github.copilot.chat.codeGeneration.instructions": [
+		{
+			"text": "This workspace is in a dev container running on \"Debian GNU/Linux 13 (trixie)\".\n\nUse `\"$BROWSER\" <url>` to open a webpage in the host's default browser.\n\nSome of the command line tools available on the `PATH`: `apt`, `dpkg`, `find`, `grep`, `tar`, `gzip`"
+		}
+	]
+}

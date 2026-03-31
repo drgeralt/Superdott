@@ -1,0 +1,38 @@
+services:
+  db:
+    image: ankane/pgvector:latest
+    container_name: superdott_db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: superdott
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d superdott"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+    container_name: superdott_api
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app:z
+    environment:
+      - DATABASE_URL=postgresql://admin:password@db:5432/superdott
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - SENTRY_DSN=${SENTRY_DSN}
+      - ENV=development
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+volumes:
+  postgres_data:
