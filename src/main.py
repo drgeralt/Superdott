@@ -1,6 +1,8 @@
-import sentry_sdk
 import logging
+
+import sentry_sdk
 from fastapi import FastAPI
+
 from src.core.config import settings
 
 # Configuração básica de Logging
@@ -16,6 +18,7 @@ if settings.ENV != "development" and settings.SENTRY_DSN:
     )
 
 app = FastAPI(title=settings.PROJECT_NAME)
+
 
 @app.get("/health")
 def health_check():
