@@ -1,8 +1,6 @@
 {
   "name": "Superdott Dev",
-  "dockerComposeFile": [
-    "../docker-compose.yml"
-  ],
+  "dockerComposeFile": ["../docker-compose.yml"],
   "service": "api",
   "workspaceFolder": "/app",
   "customizations": {
@@ -26,6 +24,5 @@
       }
     }
   },
-  "remoteUser": "appuser",
-  "updateRemoteUserUID": true
+  "remoteUser": "appuser"
 }
