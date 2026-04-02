@@ -1,0 +1,27 @@
+name: CI-Quality-Gate
+
+on:
+  push:
+    branches: [ main, develop, "feature/*" ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint-and-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Linting Tools
+        run: pip install ruff bandit
+
+      - name: Run Ruff Check (Linter + Isort)
+        run: ruff check src/
+
+      - name: Run Security Scan (Bandit)
+        run: bandit -r src/ -ll
