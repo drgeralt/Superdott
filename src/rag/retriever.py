@@ -1,5 +1,7 @@
 from dataclasses import dataclass
+
 from sqlalchemy import text
+
 from src.rag.embedder import embed_query
 
 
@@ -16,7 +18,6 @@ def retrieve(
     top_k: int = 5,
     similarity_threshold: float = 0.5,
 ) -> list[RetrievedChunk]:
-    from src.core.database import get_session
     from sqlmodel import Session
 
     query_vector = embed_query(question)

@@ -1,8 +1,10 @@
 from dataclasses import dataclass
+
 from google import genai
+
 from src.core.config import settings
-from src.rag.retriever import retrieve, RetrievedChunk
 from src.rag.prompt import build_prompt
+from src.rag.retriever import retrieve
 
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
@@ -62,9 +64,6 @@ async def ask_stream(
     top_k: int = 5,
     similarity_threshold: float = 0.5,
 ):
-    """
-    Versão com streaming — envia tokens progressivamente pro frontend.
-    """
     chunks = retrieve(
         question=question,
         top_k=top_k,

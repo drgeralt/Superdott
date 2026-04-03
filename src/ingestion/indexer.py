@@ -1,7 +1,9 @@
 import time
 from pathlib import Path
+
 from sqlalchemy import text
 from sqlmodel import Session
+
 from src.core.database import engine
 from src.ingestion.loader import load_documents
 from src.rag.embedder import embed_document
@@ -32,7 +34,10 @@ def index_documents(docs_dir: str | Path, reset: bool = False) -> int:
     batch = []
 
     for i, chunk in enumerate(chunks):
-        print(f"[{i+1}/{len(chunks)}] Vetorizando chunk #{chunk.chunk_index} de '{chunk.source}'")
+        print(
+            f"[{i+1}/{len(chunks)}] Vetorizando chunk "
+            f"#{chunk.chunk_index} de '{chunk.source}'"
+        )
 
         try:
             embedding = embed_document(chunk.content)

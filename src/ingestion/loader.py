@@ -1,6 +1,6 @@
 import re
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
 
 try:
     from pypdf import PdfReader

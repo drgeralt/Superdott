@@ -10,7 +10,8 @@ REGRAS:
 3. Sempre cite a fonte entre colchetes. Exemplo: [Fonte: manual_mec.pdf]
 4. Nunca invente dados ou informações.
 5. Use linguagem clara para docentes do ensino básico.
-6. Se houver perfil do aluno, SEMPRE direcione a resposta para o perfil dominante dele."""
+6. Se houver perfil do aluno, SEMPRE direcione a resposta \
+para o perfil dominante dele."""
 
 
 def _get_dominant_dimension(scores: dict) -> tuple[str, float] | None:
@@ -35,7 +36,9 @@ def build_prompt(
                 f"\n[Trecho {i} | Fonte: {chunk.source}]\n{chunk.content}"
             )
     else:
-        parts.append("\n\n[Nenhum trecho relevante encontrado na base de conhecimento.]")
+        parts.append(
+            "\n\n[Nenhum trecho relevante encontrado na base de conhecimento.]"
+        )
 
     if student_context:
         parts.append("\n\nPERFIL DO ALUNO:")
@@ -60,6 +63,9 @@ def build_prompt(
                 )
 
     parts.append(f"\n\nPERGUNTA DO DOCENTE:\n{question}")
-    parts.append("\n\nLembre-se: responda APENAS com base nos trechos acima, cite as fontes e considere o perfil dominante do aluno.")
+    parts.append(
+        "\n\nLembre-se: responda APENAS com base nos trechos acima, "
+        "cite as fontes e considere o perfil dominante do aluno."
+    )
 
     return "\n".join(parts)
