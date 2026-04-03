@@ -6,7 +6,8 @@ from src.rag.prompt import build_prompt
 
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
-GENERATION_MODEL = "models/gemini-2.0-flash"
+#modelo temporário talvez, era o que tinha mais cota
+GENERATION_MODEL = "models/gemini-3.1-flash-lite-preview"
 
 
 @dataclass
