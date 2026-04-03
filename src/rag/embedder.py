@@ -5,7 +5,7 @@ from src.core.config import settings
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
 EMBEDDING_MODEL = "models/gemini-embedding-001"
-EMBEDDING_DIM = 768
+EMBEDDING_DIM = 3072
 
 
 def embed_document(text: str) -> list[float]:
