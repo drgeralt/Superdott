@@ -94,7 +94,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--docs-dir", default="docs/manuais_mec")
+    parser.add_argument("--docs-dir", default="docs/knowledge")
     parser.add_argument("--reset", action="store_true")
     args = parser.parse_args()
 
