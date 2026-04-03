@@ -8,3 +8,7 @@ venv/
 .cache/
 .copilot/
 .dotnet/
+.node_modules/
+.package-lock.json
+.package.json
+.node_modules/
