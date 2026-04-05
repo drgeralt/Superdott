@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model answers {
+  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  student_id    String?      @db.Uuid
+  assessment_id String?      @db.Uuid
+  content_text  String
+  score         Decimal?     @db.Decimal(5, 2)
+  created_at    DateTime?    @default(now()) @db.Timestamptz(6)
+  assessments   assessments? @relation(fields: [assessment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  students      students?    @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model assessments {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title      String
+  subject    String?
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  answers    answers[]
+}
+
+model document_embeddings {
+  id          String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  document_id String?                @db.Uuid
+  embedding   Unsupported("vector(3072)")?
+  created_at  DateTime?              @default(now()) @db.Timestamptz(6)
+  documents   documents?             @relation(fields: [document_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model documents {
+  id                  String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id             String?               @db.Uuid
+  title               String?
+  content             String
+  created_at          DateTime?             @default(now()) @db.Timestamptz(6)
+  document_embeddings document_embeddings[]
+  users               users?                @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model knowledge_base {
+  id          String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  content     String
+  embedding   Unsupported("vector(3072)")?
+  metadata    Json?
+  source_type String?
+  created_at  DateTime?              @default(now()) @db.Timestamptz(6)
+}
+
+model schools {
+  id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String
+  address    String?
+  created_at DateTime?  @default(now()) @db.Timestamptz(6)
+  students   students[]
+}
+
+model students {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  school_id  String?   @db.Uuid
+  full_name  String
+  email      String    @unique
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  answers    answers[]
+  schools    schools?  @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model users {
+  id              String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email           String      @unique
+  hashed_password String
+  created_at      DateTime?   @default(now()) @db.Timestamptz(6)
+  documents       documents[]
+}
