@@ -4,6 +4,7 @@ import sentry_sdk
 from fastapi import FastAPI
 
 from src.core.config import settings
+from src.api.routers.assessment import router as assessment_router
 
 # Configuração básica de Logging
 logging.basicConfig(level=logging.INFO)
@@ -17,7 +18,16 @@ if settings.ENV != "development" and settings.SENTRY_DSN:
         environment=settings.ENV,
     )
 
-app = FastAPI(title=settings.PROJECT_NAME)
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    description=(
+        "Plataforma de inteligência pedagógica para identificação de alunos com "
+        "Altas Habilidades ou Superdotação (AH/SD)."
+    ),
+    version="1.0.0",
+)
+
+app.include_router(assessment_router)
 
 
 @app.get("/health")
