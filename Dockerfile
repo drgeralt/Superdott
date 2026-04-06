@@ -19,8 +19,6 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libatomic1 \
-    # prisma só roda com esse libatomic, vai entender
     libpq5 curl && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 

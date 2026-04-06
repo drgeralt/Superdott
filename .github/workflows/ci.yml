@@ -21,7 +21,7 @@ jobs:
         run: pip install ruff bandit
 
       - name: Run Ruff Check (Linter + Isort)
-        run: ruff check src/ --exclude src/generated
+        run: ruff check src/
 
       - name: Run Security Scan (Bandit)
-        run: bandit -r src/ -x src/generated -ll
+        run: bandit -r src/ -ll
