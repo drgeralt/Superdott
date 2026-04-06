@@ -1,15 +1,15 @@
 import logging
 
+import fastapi.responses
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from google import genai
 
 from src.api.routers.assessment import router as assessment_router
 from src.core.config import settings
 from src.core.database import db
-from src.rag.pipeline import ask_stream, ask
+from src.rag.pipeline import ask, ask_stream
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ app.mount("/app", StaticFiles(directory="frontend"), name="frontend")
 @app.get("/")
 async def root():
     # Redireciona automaticamente quem digitar 'localhost:8000' para o dashboard
-    return RedirectResponse(url="/app/index.html")
+    return fastapi.responses.RedirectResponse(url="/app/index.html")
 
 
 @app.get("/api/students")
@@ -97,7 +97,9 @@ async def chat_stream(payload: dict):
         async for token in ask_stream(user_msg, student_context=student_ctx):
             yield token
 
-    return StreamingResponse(event_generator(), media_type="text/plain")
+    return fastapi.responses.StreamingResponse(
+        event_generator(), media_type="text/plain"
+    )
 
 
 app.include_router(assessment_router, prefix="/api")

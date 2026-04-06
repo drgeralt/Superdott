@@ -37,16 +37,18 @@ async def index_documents(docs_dir: str | Path, reset: bool = False) -> int:
 
         for i, chunk in enumerate(chunks):
             print(
-                f"[{i + 1}/{len(chunks)}] Vetorizando chunk #{chunk.chunk_index} de '{chunk.source}'"
+                f"[{i + 1}/{len(chunks)}] Vetorizando chunk #{chunk.chunk_index} de \
+                {chunk.source}'"
             )
 
             try:
                 embedding = embed_document(chunk.content)
 
                 # Como 'embedding' é um tipo Unsupported(vector) no Prisma,
-                # usamos execute_raw para garantir que o PG localize o tipo corretamente.
+                # usamos execute_raw para garantir que o PG localize o tipo correto
                 await db.execute_raw(
-                    "INSERT INTO knowledge_base (id, content, source, chunk_index, embedding, created_at) "
+                    "INSERT INTO knowledge_base (id, content, source, chunk_index, \
+                        embedding, created_at) "
                     "VALUES (gen_random_uuid(), $1, $2, $3, $4::vector, now())",
                     chunk.content,
                     chunk.source,
