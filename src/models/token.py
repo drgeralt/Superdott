@@ -10,7 +10,6 @@ SQLModel funciona assim:
 
 import uuid
 from datetime import datetime
-from typing import Optional
 
 from sqlmodel import Field, SQLModel
 
@@ -25,7 +24,7 @@ class Token(SQLModel, table=True):
     __tablename__ = "tokens"
 
     # UUID gerado pelo banco (server_default para respeitar gen_random_uuid())
-    id: Optional[uuid.UUID] = Field(
+    id: uuid.UUID | None = Field(
         default=None,
         primary_key=True,
         sa_column_kwargs={"server_default": "gen_random_uuid()"},
@@ -44,9 +43,9 @@ class Token(SQLModel, table=True):
     is_used: bool = Field(default=False)
 
     # Data de expiração (opcional — definida no momento da criação do token)
-    expires_at: Optional[datetime] = Field(default=None)
+    expires_at: datetime | None = Field(default=None)
 
     # Quando o token foi efetivamente utilizado para submissão
-    used_at: Optional[datetime] = Field(default=None)
+    used_at: datetime | None = Field(default=None)
 
-    created_at: Optional[datetime] = Field(default=None)
+    created_at: datetime | None = Field(default=None)

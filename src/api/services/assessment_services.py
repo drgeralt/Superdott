@@ -9,29 +9,25 @@ Por que separar service do router?
   - Assim podemos testar a lógica SEM precisar de uma requisição HTTP.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
-from typing import Optional
-from uuid import UUID
 
 from fastapi import HTTPException, status
-from sqlmodel import Session, select, text
-
-from src.models.token import Token
-
 
 # ---------------------------------------------------------------------------
 # Schemas de entrada e saída (Pydantic/SQLModel sem table=True)
 # Estes são os formatos de JSON que a API aceita e retorna.
 # ---------------------------------------------------------------------------
-
 from pydantic import BaseModel
+from sqlmodel import Session, select, text
+
+from src.models.token import Token
 
 
 class AnswerInput(BaseModel):
     """Uma resposta individual do formulário de triagem."""
     content_text: str          # Texto da resposta (ex: "O aluno demonstra...")
-    score: Optional[float] = None  # Pontuação 0–10 (opcional se for qualitativa)
+    score: float | None = None  # Pontuação 0–10 (opcional se for qualitativa)
 
 
 class AssessmentContextResponse(BaseModel):
@@ -45,7 +41,7 @@ class AssessmentContextResponse(BaseModel):
     student_email: str
     assessment_id: str
     assessment_title: str
-    assessment_subject: Optional[str]
+    assessment_subject: str | None
 
 
 class SubmitResponse(BaseModel):
@@ -54,7 +50,7 @@ class SubmitResponse(BaseModel):
     Retorna o score calculado e a confirmação.
     """
     message: str
-    overall_score: Optional[float]   # Média dos scores fornecidos
+    overall_score: float | None   # Média dos scores fornecidos
     answers_saved: int               # Quantas respostas foram salvas
 
 
@@ -62,7 +58,9 @@ class SubmitResponse(BaseModel):
 # Funções de serviço
 # ---------------------------------------------------------------------------
 
-def get_assessment_context(token_value: str, session: Session) -> AssessmentContextResponse:
+def get_assessment_context(
+    token_value: str, session: Session
+) -> AssessmentContextResponse:
     """
     Busca o contexto de triagem a partir do token.
 
@@ -170,7 +168,7 @@ def submit_assessment(
 
     # 4. Invalida o token — regra de segurança principal da task
     token_obj.is_used = True
-    token_obj.used_at = datetime.now(timezone.utc)
+    token_obj.used_at = datetime.now(UTC)
     session.add(token_obj)
 
     # 5. Persiste tudo em uma única transação
@@ -210,16 +208,16 @@ def _fetch_valid_token(token_value: str, session: Session) -> Token:
     if token_obj.is_used:
         raise HTTPException(
             status_code=status.HTTP_410_GONE,
-            detail="Este link de triagem já foi utilizado e não pode ser acessado novamente.",
+            detail="Este link já foi utilizado e não pode ser acessado novamente.",
         )
 
     # Validação 3: token expirado?
     if token_obj.expires_at:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         expires = token_obj.expires_at
         # Garante que ambos têm timezone para comparação segura
         if expires.tzinfo is None:
-            expires = expires.replace(tzinfo=timezone.utc)
+            expires = expires.replace(tzinfo=UTC)
         if now > expires:
             raise HTTPException(
                 status_code=status.HTTP_410_GONE,

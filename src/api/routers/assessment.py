@@ -32,7 +32,8 @@ router = APIRouter(tags=["Assessment"])
     summary="Recuperar contexto de triagem",
     description=(
         "Recebe um token único gerado pelo sistema e retorna os dados do aluno "
-        "e do questionário associado. O token deve ser válido (não usado e não expirado)."
+        "e do questionário associado. O token deve ser válido "
+        "(não usado e não expirado)."
     ),
 )
 def get_assessment(

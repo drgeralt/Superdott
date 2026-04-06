@@ -3,8 +3,8 @@ import logging
 import sentry_sdk
 from fastapi import FastAPI
 
-from src.core.config import settings
 from src.api.routers.assessment import router as assessment_router
+from src.core.config import settings
 
 # Configuração básica de Logging
 logging.basicConfig(level=logging.INFO)
