@@ -8,7 +8,7 @@ from src.rag.retriever import retrieve
 
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
-#modelo temporário talvez, era o que tinha mais cota
+# modelo temporário talvez, era o que tinha mais cota
 GENERATION_MODEL = "models/gemini-3.1-flash-lite-preview"
 
 
@@ -19,43 +19,34 @@ class RAGResponse:
     chunks_used: int
 
 
-def ask(
+async def ask(
     question: str,
     student_context: dict | None = None,
     top_k: int = 5,
     similarity_threshold: float = 0.5,
 ) -> RAGResponse:
-    """
-    Recebe uma pergunta e retorna a resposta baseada na knowledge_base.
-    """
-    # 1. Busca os trechos relevantes
-    chunks = retrieve(
-        question=question,
-        top_k=top_k,
-        similarity_threshold=similarity_threshold,
-    )
+    try:
+        # 1. Busca no banco
+        chunks = await retrieve(
+            question=question, top_k=top_k, similarity_threshold=similarity_threshold
+        )
 
-    # 2. Monta o prompt com contexto
-    prompt = build_prompt(
-        question=question,
-        chunks=chunks,
-        student_context=student_context,
-    )
+        # 2. Gera resposta
+        response = client.models.generate_content(
+            model=GENERATION_MODEL,
+            contents=build_prompt(question, chunks, student_context),
+        )
 
-    # 3. Envia pro Gemini e obtém resposta
-    response = client.models.generate_content(
-        model=GENERATION_MODEL,
-        contents=prompt,
-    )
-
-    # 4. Extrai fontes únicas
-    sources = list(dict.fromkeys(chunk.source for chunk in chunks))
-
-    return RAGResponse(
-        answer=response.text,
-        sources=sources,
-        chunks_used=len(chunks),
-    )
+        # AQUI ESTAVA O ERRO: Adicionamos o chunks_used=len(chunks)
+        return RAGResponse(
+            answer=response.text,
+            sources=list(set([c.source for c in chunks])),
+            chunks_used=len(chunks),
+        )
+    except Exception as e:
+        print(f"DEBUG: Ocorreu um erro real no Gemini: {type(e).__name__} - {str(e)}")
+        # AQUI TAMBÉM: Adicionamos o chunks_used=0 no erro
+        return RAGResponse(answer=f"Erro Técnico: {str(e)}", sources=[], chunks_used=0)
 
 
 async def ask_stream(
@@ -64,7 +55,7 @@ async def ask_stream(
     top_k: int = 5,
     similarity_threshold: float = 0.5,
 ):
-    chunks = retrieve(
+    chunks = await retrieve(
         question=question,
         top_k=top_k,
         similarity_threshold=similarity_threshold,

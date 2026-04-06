@@ -1,98 +1,75 @@
+import asyncio
 import time
 from pathlib import Path
 
-from sqlalchemy import text
-from sqlmodel import Session
-
-from src.core.database import engine
+from src.generated.prisma import Prisma  # Novo local do Prisma
 from src.ingestion.loader import load_documents
 from src.rag.embedder import embed_document
 
-BATCH_SIZE = 50
-RATE_LIMIT_DELAY = 0.5
+BATCH_SIZE = 1
+RATE_LIMIT_DELAY = 3.0
 
 
-def index_documents(docs_dir: str | Path, reset: bool = False) -> int:
+async def index_documents(docs_dir: str | Path, reset: bool = False) -> int:
     print("=" * 50)
-    print("Superdott — Ingestão de Documentos")
-    print("=" * 50)
-
-    # Carrega e faz chunking
-    chunks = load_documents(docs_dir)
-
-    if not chunks:
-        print("Nenhum chunk gerado. Verifique a pasta.")
-        return 0
-
-    # Limpa o banco se solicitado
-    if reset:
-        _reset_knowledge_base()
-
-    # Vetoriza e salva em lotes
-    indexed = 0
-    failed = 0
-    batch = []
-
-    for i, chunk in enumerate(chunks):
-        print(
-            f"[{i+1}/{len(chunks)}] Vetorizando chunk "
-            f"#{chunk.chunk_index} de '{chunk.source}'"
-        )
-
-        try:
-            embedding = embed_document(chunk.content)
-
-            batch.append({
-                "content": chunk.content,
-                "source": chunk.source,
-                "chunk_index": chunk.chunk_index,
-                "embedding": "[" + ",".join(str(v) for v in embedding) + "]",
-            })
-
-            if len(batch) >= BATCH_SIZE:
-                _insert_batch(batch)
-                indexed += len(batch)
-                print(f"  → Lote de {len(batch)} chunks salvo.")
-                batch = []
-
-            time.sleep(RATE_LIMIT_DELAY)
-
-        except Exception as e:
-            failed += 1
-            print(f"  ERRO no chunk {i+1}: {e}")
-            continue
-
-    # Salva o restante
-    if batch:
-        _insert_batch(batch)
-        indexed += len(batch)
-
-    print("=" * 50)
-    print(f"✓ Indexados: {indexed}")
-    print(f"✗ Falhas:    {failed}")
+    print("Superdott — Ingestão de Documentos (via Prisma)")
     print("=" * 50)
 
-    return indexed
+    # 1. Inicializa o Prisma
+    db = Prisma()
+    await db.connect()
 
+    try:
+        # Carrega e faz chunking
+        chunks = load_documents(docs_dir)
+        if not chunks:
+            print("Nenhum chunk gerado. Verifique a pasta.")
+            return 0
 
-def _insert_batch(batch: list[dict]) -> None:
-    sql = text("""
-        INSERT INTO knowledge_base (content, source, chunk_index, embedding)
-        VALUES (:content, :source, :chunk_index, :embedding::vector)
-        ON CONFLICT DO NOTHING;
-    """)
+        # Limpa o banco se solicitado
+        if reset:
+            print("Limpando knowledge_base...")
+            await db.execute_raw("TRUNCATE TABLE knowledge_base RESTART IDENTITY;")
+            print("Banco limpo.")
 
-    with Session(engine) as session:
-        session.execute(sql, batch)
-        session.commit()
+        indexed = 0
+        failed = 0
 
+        for i, chunk in enumerate(chunks):
+            print(
+                f"[{i + 1}/{len(chunks)}] Vetorizando chunk #{chunk.chunk_index} de '{chunk.source}'"
+            )
 
-def _reset_knowledge_base() -> None:
-    print("Limpando knowledge_base...")
-    with Session(engine) as session:
-        session.execute(text("TRUNCATE TABLE knowledge_base RESTART IDENTITY;"))
-        session.commit()
-    print("Banco limpo.")
+            try:
+                embedding = embed_document(chunk.content)
+
+                # Como 'embedding' é um tipo Unsupported(vector) no Prisma,
+                # usamos execute_raw para garantir que o PG localize o tipo corretamente.
+                await db.execute_raw(
+                    "INSERT INTO knowledge_base (id, content, source, chunk_index, embedding, created_at) "
+                    "VALUES (gen_random_uuid(), $1, $2, $3, $4::vector, now())",
+                    chunk.content,
+                    chunk.source,
+                    chunk.chunk_index,  # Adicionado
+                    str(embedding),
+                )
+
+                indexed += 1
+                time.sleep(RATE_LIMIT_DELAY)
+
+            except Exception as e:
+                failed += 1
+                print(f"ERRO no chunk {i + 1}: {e}")
+                continue
+
+        print("=" * 50)
+        print(f"✓ Indexados: {indexed}")
+        print(f"✗ Falhas:    {failed}")
+        print("=" * 50)
+        return indexed
+
+    finally:
+        await db.disconnect()
 
 
 if __name__ == "__main__":
@@ -103,4 +80,5 @@ if __name__ == "__main__":
     parser.add_argument("--reset", action="store_true")
     args = parser.parse_args()
 
-    index_documents(docs_dir=args.docs_dir, reset=args.reset)
+    # Roda o loop assíncrono
+    asyncio.run(index_documents(docs_dir=args.docs_dir, reset=args.reset))
