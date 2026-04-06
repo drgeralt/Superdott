@@ -1,15 +1,48 @@
-.env
+# --- Python & Ambiente Virtual ---
 __pycache__/
-*.pyc
-.ruff_cache/
-venv/
+*.py[cod]
+*$py.class
 .venv/
-.vscode-server/
-.cache/
-.copilot/
-.dotnet/
-.node_modules/
-.package-lock.json
-.package.json
-.node_modules/
+venv/
+ENV/
+.env
+.env.*
+!.env.example  # Mantém o exemplo para referência, mas ignora as chaves reais
+
+# --- Prisma (Gerado) ---
+# Ignoramos o cliente gerado para que ele seja reconstruído no container
+src/generated/
+
+# --- Banco de Dados Local ---
+# Caso você use SQLite em algum momento ou logs do Postgres
+*.db
+*.db-journal
+*.sqlite3
+
+# --- Docker ---
+.docker/
+# Ignora arquivos de log do docker se você os salvar em disco
+*.log
+
+# --- Frontend & Node (Just in case) ---
+node_modules/
+.DS_Store
+dist/
+build/
+
+# --- VS Code & IDEs ---
+.vscode/
 .idea/
+*.swp
+*.swo
+
+# --- Ferramentas de Linting & Formatação (Ruff/Mypy) ---
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- OS específicos ---
+Thumbs.db
+desktop.ini
