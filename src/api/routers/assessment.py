@@ -10,8 +10,6 @@ O router é fino de propósito: só lida com HTTP.
 Toda lógica vive em assessment_service.py.
 """
 
-from typing import List
-
 from fastapi import APIRouter, Depends, status
 from sqlmodel import Session
 
@@ -68,7 +66,7 @@ def get_assessment(
 )
 def submit_assessment_endpoint(
     token: str,
-    answers: List[AnswerInput],
+    answers: list[AnswerInput],
     session: Session = Depends(get_session),
 ):
     """

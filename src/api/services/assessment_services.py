@@ -25,7 +25,6 @@ from src.models.token import Token
 # Estes são os formatos de JSON que a API aceita e retorna.
 # ---------------------------------------------------------------------------
 
-from typing import List
 from pydantic import BaseModel
 
 
@@ -115,7 +114,7 @@ def get_assessment_context(token_value: str, session: Session) -> AssessmentCont
 
 def submit_assessment(
     token_value: str,
-    answers: List[AnswerInput],
+    answers: list[AnswerInput],
     session: Session,
 ) -> SubmitResponse:
     """
