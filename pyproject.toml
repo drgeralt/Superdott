@@ -22,4 +22,5 @@ known-first-party = ["src"]
 "src/api/routers/*.py" = ["B008"]
 
 [tool.bandit]
-exclude_dirs = ["src/generated"]
+exclude_dirs = ["src/generated", ".venv", "tests"]
+targets = ["src"]
