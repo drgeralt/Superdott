@@ -1,18 +1,19 @@
-"""
-src/core/database.py
---------------------
-Configura a conexão com o PostgreSQL usando SQLModel (que usa SQLAlchemy por baixo).
+from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.orm import sessionmaker
+from sqlmodel.ext.asyncio.session import AsyncSession
 
-Por que SQLModel e não Prisma aqui?
-  - O Prisma neste projeto é usado para MIGRAR o schema (prisma migrate).
-  - Para QUERIES dentro do Python/FastAPI, o SQLModel é mais idiomático
-    e integra nativamente com o FastAPI via Dependency Injection.
-"""
+from src.core.config import settings
 
-from src.generated.prisma import Prisma
+# Converte a URL do Postgres para usar o driver assíncrono (asyncpg)
+# Ex: de postgresql://user:pass... para postgresql+asyncpg://user:pass...
+db_url = settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
 
-db = Prisma()
+# Cria o motor do banco de dados
+engine = create_async_engine(db_url, echo=False)
 
 
+# Injeção de dependência para as rotas do FastAPI
 async def get_session():
-    return db
+    async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    async with async_session() as session:
+        yield session
