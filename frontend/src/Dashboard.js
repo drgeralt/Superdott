@@ -1,26 +1,20 @@
 const { useState, useEffect } = React;
 
-const navItems = [
-    { label: 'Dashboard', href: 'index.html' },
-    { label: 'Triagem', href: 'triagem.html' },
-    { label: 'Relatórios', href: '#' }
-];
-
 const App = () => {
-    const [students, setStudents] = useState([]);
-    const [selectedStudent, setSelectedStudent] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const fetchStudents = useStudentStore(state => state.fetchStudents);
+    const isLoading = useStudentStore(state => state.isLoading);
+    const error = useStudentStore(state => state.error);
+    const students = useStudentStore(state => state.students);
 
-    // BUSCA REAL DOS ALUNOS
+    const navItems = [
+        { label: 'Dashboard', href: 'index.html' },
+        { label: 'Triagem', href: 'triagem.html' },
+        { label: 'Relatórios', href: '#' }
+    ];
+
+    // Busca os alunos quando o app carrega
     useEffect(() => {
-        fetch('http://localhost:8000/api/students')
-            .then(res => res.json())
-            .then(data => {
-                setStudents(data);
-                if (data.length > 0) setSelectedStudent(data); // Seleciona o primeiro por padrão
-                setLoading(false);
-            })
-            .catch(err => console.error("Erro ao carregar alunos:", err));
+        fetchStudents();
     }, []);
 
     return (
@@ -46,26 +40,31 @@ const App = () => {
                 <header className="mb-8">
                     <div className="max-w-xl">
                         <p className="text-on-surface-variant mt-2 text-lg">
-                            {loading ? "Carregando dados pedagógicos..." : `Dashboard: Analisando ${students.length} alunos.`}
+                            {isLoading
+                                ? "Carregando dados pedagógicos..."
+                                : error
+                                ? "Erro ao conectar com o servidor."
+                                : `Dashboard: Analisando ${students.length} alunos.`
+                            }
                         </p>
                     </div>
                 </header>
 
+                {/* Alerta de erro */}
+                {error && (
+                    <div className="mb-6 p-4 bg-error-container text-on-surface rounded-xl flex items-center gap-3">
+                        <span className="material-symbols-outlined text-error">error</span>
+                        <p className="text-sm">{error}</p>
+                    </div>
+                )}
+
                 <div className="grid grid-cols-12 gap-6 items-start">
-                    {/* Passamos os dados e a função de clique */}
-                    <StudentList 
-                        students={students} 
-                        activeId={selectedStudent?.id}
-                        onSelect={setSelectedStudent} 
-                    />
-                    
-                    {/* O gráfico agora recebe dados REAIS do aluno selecionado */}
-                    <TalentMap student={selectedStudent} />
-                    
-                    {/* O Chat recebe o contexto do aluno para a IA saber de quem está falando */}
-                    <AIChat student={selectedStudent} />
+                    <StudentList />
+                    <TalentMap />
+                    <AIChat />
                 </div>
             </main>
+
             <MobileBottomNav />
         </div>
     );
@@ -74,5 +73,9 @@ const App = () => {
 const rootElement = document.getElementById('root');
 if (rootElement && !rootElement._reactRootContainer) {
     const root = ReactDOM.createRoot(rootElement);
-    root.render(<App />);
+    root.render(
+        <StudentProvider>
+            <App />
+        </StudentProvider>
+    );
 }

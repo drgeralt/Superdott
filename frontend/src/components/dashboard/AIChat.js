@@ -1,6 +1,7 @@
 const { useState, useEffect, useRef } = React;
 
-const AIChat = ({ student }) => {
+const AIChat = () => {
+    const student = useStudentStore(state => state.selectedStudent);
     const [messages, setMessages] = useState([
         {
             id: 'welcome',

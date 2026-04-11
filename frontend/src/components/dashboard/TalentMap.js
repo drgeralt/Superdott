@@ -1,16 +1,22 @@
 const { useEffect, useRef } = React;
-const TalentMap = ({ data = [30, 90, 45] }) => {
+
+const TalentMap = () => {
+    const selectedStudent = useStudentStore(state => state.selectedStudent);
+    const isLoading = useStudentStore(state => state.isLoading);
     const chartRef = useRef(null);
     const chartInstance = useRef(null);
 
+    const data = selectedStudent ? [
+        selectedStudent.score_intelectual || 0,
+        selectedStudent.score_criatividade || 0,
+        selectedStudent.score_lideranca || 0,
+    ] : [0, 0, 0];
+
     useEffect(() => {
         if (!chartRef.current) return;
-        if (chartInstance.current) {
-            chartInstance.current.destroy();
-        }
+        if (chartInstance.current) chartInstance.current.destroy();
 
         const ctx = chartRef.current.getContext('2d');
-
         chartInstance.current = new window.Chart(ctx, {
             type: 'radar',
             data: {
@@ -29,9 +35,7 @@ const TalentMap = ({ data = [30, 90, 45] }) => {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                layout: {
-                    padding: 24
-                },
+                layout: { padding: 24 },
                 plugins: {
                     legend: { display: false },
                     tooltip: {
@@ -44,36 +48,40 @@ const TalentMap = ({ data = [30, 90, 45] }) => {
                 },
                 scales: {
                     r: {
-                        angleLines: {
-                            display: true,
-                            color: 'rgba(12, 44, 71, 0.1)',
-                            lineWidth: 1.5
-                        },
-                        grid: {
-                            circular: true, // Força as teias a serem circulares
-                            color: 'rgba(12, 44, 71, 0.1)',
-                            lineWidth: 1.5
-                        },
-                        pointLabels: {
-                            display: false
-                        },
-                        ticks: {
-                            display: false,
-                            min: 0,
-                            max: 100,
-                            stepSize: 33.3 // Cria exatamente os 3 anéis da imagem
-                        }
+                        angleLines: { display: true, color: 'rgba(12, 44, 71, 0.1)', lineWidth: 1.5 },
+                        grid: { circular: true, color: 'rgba(12, 44, 71, 0.1)', lineWidth: 1.5 },
+                        pointLabels: { display: false },
+                        ticks: { display: false, min: 0, max: 10, stepSize: 3.3 }
                     }
                 }
             }
         });
 
-        return () => {
-            if (chartInstance.current) {
-                chartInstance.current.destroy();
-            }
-        };
+        return () => { if (chartInstance.current) chartInstance.current.destroy(); };
     }, [data]);
+
+    // Loading state
+    if (isLoading) {
+        return (
+            <section className="col-span-12 md:col-span-4 space-y-6">
+                <div className="bg-surface-container-lowest rounded-xl p-6 shadow-sm animate-pulse">
+                    <div className="h-5 bg-outline-variant/30 rounded w-1/2 mb-6"></div>
+                    <div className="w-full aspect-square bg-outline-variant/20 rounded-full"></div>
+                </div>
+            </section>
+        );
+    }
+
+    // Sem aluno selecionado
+    if (!selectedStudent) {
+        return (
+            <section className="col-span-12 md:col-span-4 space-y-6">
+                <div className="bg-surface-container-lowest rounded-xl p-6 shadow-sm flex items-center justify-center h-64">
+                    <p className="text-on-surface-variant text-sm">Selecione um aluno para ver o mapa de talentos.</p>
+                </div>
+            </section>
+        );
+    }
 
     return (
         <section className="col-span-12 md:col-span-4 space-y-6">
@@ -81,14 +89,13 @@ const TalentMap = ({ data = [30, 90, 45] }) => {
                 <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
                     <span className="material-symbols-outlined text-6xl text-primary-navy">psychology</span>
                 </div>
-                <h2 className="font-headline font-extrabold text-xl mb-6 flex items-center gap-2 text-primary-navy">
+                <h2 className="font-headline font-extrabold text-xl mb-2 flex items-center gap-2 text-primary-navy">
                     Mapa de Talentos
                 </h2>
-
-                {/* Contêiner do Gráfico */}
+                <p className="text-xs text-on-surface-variant mb-4 font-medium">
+                    {selectedStudent.full_name}
+                </p>
                 <div className="relative w-full aspect-square flex items-center justify-center mb-6">
-
-                    {/* O Gráfico Dinâmico */}
                     <div className="w-full h-full absolute inset-0">
                         <canvas ref={chartRef}></canvas>
                     </div>
@@ -102,13 +109,14 @@ const TalentMap = ({ data = [30, 90, 45] }) => {
                         Liderança
                     </div>
                 </div>
-
                 <div className="space-y-4">
                     <div className="bg-mint-light p-4 rounded-xl">
-                        <h4 className="text-xs font-bold uppercase tracking-widest text-primary-navy mb-2">Resumo da Triagem</h4>
-                        <p className="text-sm text-on-surface leading-relaxed">
-                            Ana demonstra um perfil altamente <span className="text-teal-custom font-bold">analítico</span> com inclinação para artes visuais. Sua capacidade de síntese é superior à média da turma, embora apresente sinais de <span className="text-orange-custom font-bold">retraimento</span> em atividades de grupo que exigem liderança direta.
-                        </p>
+                        <h4 className="text-xs font-bold uppercase tracking-widest text-primary-navy mb-2">Scores da Triagem</h4>
+                        <div className="space-y-1 text-sm text-on-surface">
+                            <p>Intelectual: <strong>{selectedStudent.score_intelectual}/10</strong></p>
+                            <p>Criativa: <strong>{selectedStudent.score_criatividade}/10</strong></p>
+                            <p>Liderança: <strong>{selectedStudent.score_lideranca}/10</strong></p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -116,4 +124,4 @@ const TalentMap = ({ data = [30, 90, 45] }) => {
     );
 };
 
-window.TalentMap = TalentMap; 
+window.TalentMap = TalentMap;
