@@ -52,7 +52,6 @@ const AIChat = ({ student }) => {
         setIsStreaming(true);
 
         try {
-            // Utilizando o proxy do Vite configurado para /api
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

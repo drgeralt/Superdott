@@ -24,7 +24,6 @@ const Dashboard = () => {
 
     // BUSCA REAL DOS ALUNOS ATRAVÉS DO PROXY DO VITE
     useEffect(() => {
-        // o caminho '/api/students' será redirecionado para 'http://localhost:8000/api/students' pelo vite.config.js
         fetch('/api/students')
             .then(res => res.json())
             .then(data => {
