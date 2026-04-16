@@ -6,7 +6,6 @@ export default defineConfig({
     server: {
         port: 3000,
         proxy: {
-            // Redireciona chamadas de /api para o seu backend FastAPI
             '/api': {
                 target: 'http://localhost:8000',
                 changeOrigin: true,
