@@ -24,3 +24,9 @@ known-first-party = ["src"]
 [tool.bandit]
 exclude_dirs = ["src/generated", ".venv", "tests"]
 targets = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
+[tool.pytest]
+testpaths = ["tests"]

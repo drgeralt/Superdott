@@ -14,9 +14,10 @@ from src.models.knowledge_base import KnowledgeBase
 from src.models.school import School
 from src.models.student import Student
 from src.models.token import Token
+from src.models import ChatSession, ChatMessage
 
 # Forçamos o uso para o linter e para garantir o registro no Metadata
-_all_models = [School, Student, Assessment, Answer, KnowledgeBase, Token]
+_all_models = [School, Student, Assessment, Answer, KnowledgeBase, Token, ChatSession, ChatMessage]
 
 config = context.config
 if config.config_file_name is not None:

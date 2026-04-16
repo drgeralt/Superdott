@@ -10,6 +10,7 @@ client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
 # modelo temporário talvez, era o que tinha mais cota
 GENERATION_MODEL = "models/gemini-3.1-flash-lite-preview"
+#GENERATION_MODEL = "models/gemini-1.5-flash" # troca teste
 
 
 @dataclass
@@ -22,6 +23,7 @@ class RAGResponse:
 async def ask(
     question: str,
     student_context: dict | None = None,
+    history: list[dict] | None = None,
     top_k: int = 5,
     similarity_threshold: float = 0.5,
 ) -> RAGResponse:
@@ -36,8 +38,7 @@ async def ask(
             model=GENERATION_MODEL,
             contents=build_prompt(question, chunks, student_context),
         )
-
-        # AQUI ESTAVA O ERRO: Adicionamos o chunks_used=len(chunks)
+     
         return RAGResponse(
             answer=response.text,
             sources=list(set([c.source for c in chunks])),
@@ -45,13 +46,13 @@ async def ask(
         )
     except Exception as e:
         print(f"DEBUG: Ocorreu um erro real no Gemini: {type(e).__name__} - {str(e)}")
-        # AQUI TAMBÉM: Adicionamos o chunks_used=0 no erro
         return RAGResponse(answer=f"Erro Técnico: {str(e)}", sources=[], chunks_used=0)
 
 
 async def ask_stream(
     question: str,
     student_context: dict | None = None,
+    history: list[dict] | None = None,
     top_k: int = 5,
     similarity_threshold: float = 0.5,
 ):
@@ -65,6 +66,7 @@ async def ask_stream(
         question=question,
         chunks=chunks,
         student_context=student_context,
+        history=history,
     )
 
     response = client.models.generate_content_stream(
