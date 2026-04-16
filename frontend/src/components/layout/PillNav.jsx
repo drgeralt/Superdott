@@ -1,19 +1,20 @@
-const { useEffect, useRef, useState } = React;
+import React, { useEffect, useRef, useState } from 'react';
+import gsap from 'gsap';
 
 const PillNav = ({
-    logo,
-    logoAlt = 'Logo',
-    items,
-    activeHref,
-    className = '',
-    ease = 'power3.easeOut',
-    baseColor = '#0C2C47',
-    pillColor = '#E4F2EA',
-    hoveredPillTextColor = '#0C2C47',
-    pillTextColor,
-    onMobileMenuClick,
-    initialLoadAnimation = true
-}) => {
+                     logo,
+                     logoAlt = 'Logo',
+                     items,
+                     activeHref,
+                     className = '',
+                     ease = 'power3.easeOut',
+                     baseColor = '#0C2C47',
+                     pillColor = '#E4F2EA',
+                     hoveredPillTextColor = '#0C2C47',
+                     pillTextColor,
+                     onMobileMenuClick,
+                     initialLoadAnimation = true
+                 }) => {
     const resolvedPillTextColor = pillTextColor ?? baseColor;
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const circleRefs = useRef([]);
@@ -167,10 +168,10 @@ const PillNav = ({
     };
 
     const cssVars = {
-        ['--base']: baseColor,
-        ['--pill-bg']: pillColor,
-        ['--hover-text']: hoveredPillTextColor,
-        ['--pill-text']: resolvedPillTextColor
+        '--base': baseColor,
+        '--pill-bg': pillColor,
+        '--hover-text': hoveredPillTextColor,
+        '--pill-text': resolvedPillTextColor
     };
 
     return (
@@ -180,7 +181,8 @@ const PillNav = ({
                     className="pill-logo"
                     href={items?.[0]?.href || '#'}
                     aria-label="Home"
-                    ref={el => { logoRef.current = el; }}
+                    onMouseEnter={handleLogoEnter}
+                    ref={logoRef}
                 >
                     <img src={logo} alt={logoAlt} ref={logoImgRef} className="h-8" />
                 </a>
@@ -232,3 +234,5 @@ const PillNav = ({
         </div>
     );
 };
+
+export default PillNav;

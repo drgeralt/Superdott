@@ -1,3 +1,5 @@
+import React from 'react';
+
 const MobileBottomNav = () => (
     <nav className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/90 backdrop-blur-xl shadow-[0_-4px_20px_rgba(0,0,0,0.05)] rounded-t-3xl border-t border-slate-100">
         <button className="flex flex-col items-center justify-center bg-mint-light text-primary-navy rounded-2xl px-5 py-2 active:scale-90 transition-transform">
@@ -18,3 +20,5 @@ const MobileBottomNav = () => (
         </button>
     </nav>
 );
+
+export default MobileBottomNav;
