@@ -220,15 +220,35 @@ const PillNav = ({
                 </button>
             </nav>
 
-            <div className="mobile-menu-popover mobile-only" ref={mobileMenuRef} style={cssVars}>
+            <div
+                className={`mobile-menu-popover mobile-only ${isMobileMenuOpen ? 'is-open' : ''}`}
+                ref={mobileMenuRef}
+                style={cssVars}
+            >
                 <ul className="mobile-menu-list">
                     {items.map((item, i) => (
                         <li key={item.href || `mobile-item-${i}`}>
-                            <a href={item.href} className={`mobile-menu-link${activeHref === item.href ? ' is-active' : ''}`} onClick={() => setIsMobileMenuOpen(false)}>
+                            <a
+                                href={item.href}
+                                className={`mobile-menu-link${activeHref === item.href ? ' is-active' : ''}`}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                                <span className="material-symbols-outlined text-sm mr-2">arrow_forward</span>
                                 {item.label}
                             </a>
                         </li>
                     ))}
+                    {/* Espaço para futuras opções extras */}
+                    <li className="border-t border-white/10 mt-2 pt-2">
+                        <a
+                            href="#config"
+                            className="mobile-menu-link opacity-70"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            <span className="material-symbols-outlined text-sm mr-2">settings</span>
+                            Configurações
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
