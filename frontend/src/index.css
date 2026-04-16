@@ -1,18 +1,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+@import "tailwindcss";
+@theme {
+    --color-primary-navy: #0C2C47;
+    --color-teal-custom: #2DD4BF;
+    --color-orange-custom: #F59E0B;
+    --color-mint-light: #E4F2EA;
+    --color-mint-accent: #C7E9D9;
+    --color-surface-container-lowest: #FFFFFF;
+    --color-surface-container-low: #F7F9FB;
+    --color-on-surface: #1A1C1E;
+    --color-on-surface-variant: #44474E;
+    --color-outline-variant: #C4C6D0;
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
+    --font-headline: 'Montserrat', sans-serif;
+    --font-sans: 'Inter', sans-serif;
+}
 @layer base {
     body {
         margin: 0;
         padding: 0;
-        font-family: 'Montserrat', sans-serif;
-        background-color: #f4f4f9;
-        color: #333;
-        @apply antialiased;
+        font-family: var(--font-sans);
+        background-color: var(--color-surface-container-lowest);
+        color: var(--color-on-surface);
+        -webkit-font-smoothing: antialiased;
     }
 
     .material-symbols-outlined {
@@ -22,13 +33,15 @@
     }
 }
 
-/* 4. REESTRUTURAÇÃO DO PILL NAV (DESIGN ORIGINAL) */
-/* Removido position absolute para não bugar o Grid do Dashboard */
 .pill-nav-container {
     position: relative;
     z-index: 99;
     display: flex;
     justify-content: center;
+    --base: #0C2C47;
+    --pill-bg: #fff;
+    --hover-text: #fff;
+    --pill-text: #0C2C47;
 }
 
 .pill-nav {
@@ -143,7 +156,7 @@
     z-index: 4;
 }
 
-/* 5. RESPONSIVIDADE E MENU MOBILE */
+/* RESPONSIVIDADE E MENU MOBILE */
 .desktop-only { display: flex; }
 .mobile-only { display: none; }
 
@@ -174,35 +187,17 @@
     border-radius: 1px;
 }
 
-/* 6. COMPONENTES ADICIONAIS */
-.split-parent {
-    display: flex;
-    overflow: hidden;
-}
-
-.split-char {
-    display: inline-block;
-    will-change: transform;
-}
-
-/* Ajuste fino para o Radar Chart não estourar */
-canvas {
-    max-width: 100%;
-    height: auto !important;
-}
-
-/* Refinamento do Mobile Menu */
 .mobile-menu-popover {
     position: absolute;
-    top: 60px; /* Logo abaixo da pílula */
+    top: 60px;
     right: 0;
     width: 200px;
     background: var(--base, #0C2C47);
     border-radius: 20px;
     padding: 10px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    z-index: 1000; /* Garante que fica sobre o dashboard */
-    visibility: hidden; /* Controlado pelo GSAP */
+    z-index: 1000;
+    visibility: hidden;
     pointer-events: auto;
 }
 
@@ -231,9 +226,21 @@ canvas {
     background: rgba(255, 255, 255, 0.1);
 }
 
-/* Ajuste de escala para o Gráfico não forçar scroll */
+.split-parent { display: flex; overflow: hidden; }
+.split-char { display: inline-block; will-change: transform; }
+
+canvas { max-width: 100%; height: auto !important; }
+
 @media (min-height: 900px) {
-    .radar-container {
-        max-height: 450px;
-    }
+    .radar-container { max-height: 450px; }
+}
+
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(12, 44, 71, 0.15);
+    border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(12, 44, 71, 0.3);
 }
