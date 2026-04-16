@@ -190,3 +190,50 @@ canvas {
     max-width: 100%;
     height: auto !important;
 }
+
+/* Refinamento do Mobile Menu */
+.mobile-menu-popover {
+    position: absolute;
+    top: 60px; /* Logo abaixo da pílula */
+    right: 0;
+    width: 200px;
+    background: var(--base, #0C2C47);
+    border-radius: 20px;
+    padding: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    z-index: 1000; /* Garante que fica sobre o dashboard */
+    visibility: hidden; /* Controlado pelo GSAP */
+    pointer-events: auto;
+}
+
+.mobile-menu-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.mobile-menu-link {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    color: white;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 12px;
+    transition: background 0.2s;
+}
+
+.mobile-menu-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Ajuste de escala para o Gráfico não forçar scroll */
+@media (min-height: 900px) {
+    .radar-container {
+        max-height: 450px;
+    }
+}
