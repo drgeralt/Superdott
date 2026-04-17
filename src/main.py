@@ -2,7 +2,6 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 
 # Importação dos roteadores
 from src.api.routers import assessment, chat, students, system
@@ -20,9 +19,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Servindo o Frontend estático (Será removido na Task 1 - Vite)
-app.mount("/app", StaticFiles(directory="frontend"), name="frontend")
 
 # Registro das rotas
 app.include_router(system.router)
