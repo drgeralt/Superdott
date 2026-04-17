@@ -150,7 +150,8 @@ async def get_chat_history(
     student_id: UUID,
     session: AsyncSession = Depends(get_session),
 ):
-    """Retorna o histórico de mensagens de um aluno para o frontend reconstruir o chat."""
+    """Retorna o histórico de mensagens de um 
+    aluno para o frontend reconstruir o chat."""
     result = await session.exec(
         select(ChatSession).where(ChatSession.student_id == student_id)
     )
