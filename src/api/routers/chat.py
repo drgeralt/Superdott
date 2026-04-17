@@ -1,14 +1,13 @@
 import logging
+from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from uuid import UUID
 
 from src.core.database import get_session
-from src.models import chat_session
 from src.models.chat_message import ChatMessage
 from src.models.chat_session import ChatSession
 from src.rag.pipeline import ask, ask_stream
@@ -60,7 +59,7 @@ async def chat_pedagogico(
     try:
         chat_session = await _get_or_create_session(payload.student_id, session)
         history = await _get_recent_history(chat_session.id, session)
-        
+
         # Adiciona a nova mensagem ao histórico
         user_msg = ChatMessage(
             session_id=chat_session.id,
@@ -99,7 +98,7 @@ async def chat_stream(
     payload: ChatRequest,
     session: AsyncSession = Depends(get_session),
 ):
-    
+
     # Fallback para contexto padrão se o frontend não enviar
     ctx = payload.student_context or {
         "name": "Aluno Padrão",
@@ -146,7 +145,8 @@ async def get_chat_history(
     student_id: UUID,
     session: AsyncSession = Depends(get_session),
 ):
-    """Retorna o histórico de mensagens de um aluno para o frontend reconstruir o chat."""
+    """Retorna o histórico de mensagens de um 
+    aluno para o frontend reconstruir o chat."""
     result = await session.exec(
         select(ChatSession).where(ChatSession.student_id == student_id)
     )

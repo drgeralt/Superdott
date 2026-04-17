@@ -11,3 +11,4 @@ class ChatSession(SQLModel, table=True):
     student_id: UUID = Field(foreign_key="students.id", index=True)
     created_at: datetime | None = Field(default_factory=datetime.utcnow)
     updated_at: datetime | None = Field(default_factory=datetime.utcnow)
+    

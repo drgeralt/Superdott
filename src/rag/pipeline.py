@@ -38,7 +38,7 @@ async def ask(
             model=GENERATION_MODEL,
             contents=build_prompt(question, chunks, student_context),
         )
-     
+
         return RAGResponse(
             answer=response.text,
             sources=list(set([c.source for c in chunks])),
@@ -76,4 +76,4 @@ async def ask_stream(
 
     for chunk in response:
         if chunk.text:
-            yield chunk.text
+            yield chunk.text            
