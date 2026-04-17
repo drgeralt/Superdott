@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 import StudentList from './components/dashboard/StudentList';
 import TalentMap from './components/dashboard/TalentMap';

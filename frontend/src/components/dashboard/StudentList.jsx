@@ -1,5 +1,3 @@
-// src/components/dashboard/StudentList.jsx
-import React from 'react';
 import noUserPfp from '../../assets/img/no-user-pfp.jpg';
 
 const StudentList = ({ students, activeId, onSelect }) => {
