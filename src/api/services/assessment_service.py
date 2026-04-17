@@ -58,7 +58,9 @@ async def get_assessment_context(
     assessment = await session.get(Assessment, token_obj.assessment_id)
 
     if not student or not assessment:
-        raise HTTPException(status_code=404, detail="Dados vinculados ao token sumiram.")
+        raise HTTPException(
+            status_code=404, detail="Dados vinculados ao token sumiram."
+        )
 
     return AssessmentContextResponse(
         token=token_value,

@@ -1,14 +1,13 @@
 import logging
+from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from uuid import UUID
 
 from src.core.database import get_session
-from src.models import chat_session
 from src.models.chat_message import ChatMessage
 from src.models.chat_session import ChatSession
 from src.rag.pipeline import ask, ask_stream
@@ -16,16 +15,18 @@ from src.rag.pipeline import ask, ask_stream
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/chat", tags=["Chat AI"])
 
-HISTORY_WINDOW = 5 # Número de mensagens anteriores a considerar no contexto
+HISTORY_WINDOW = 5  # Número de mensagens anteriores a considerar no contexto
+
 
 class ChatRequest(BaseModel):
     message: str
     student_context: dict | None = None
     student_id: UUID
 
+
 async def _get_or_create_session(
-                        student_id: UUID, session: AsyncSession
-)-> ChatSession:
+    student_id: UUID, session: AsyncSession
+) -> ChatSession:
     """Busca sessão ativa ou cria uma nova sessão."""
     result = await session.exec(
         select(ChatSession).where(ChatSession.student_id == student_id)
@@ -38,18 +39,19 @@ async def _get_or_create_session(
         await session.refresh(chat_session)
     return chat_session
 
-async def _get_recent_history(
-        session_id: UUID, session: AsyncSession
-) -> list[dict]:
+
+async def _get_recent_history(session_id: UUID, session: AsyncSession) -> list[dict]:
     """Retorna  as últimas mensagens (HISTORY_WINDOW) do chat para contexto."""
     result = await session.exec(
         select(ChatMessage)
         .where(ChatMessage.session_id == session_id)
         .order_by(ChatMessage.created_at.desc())
-        .limit(HISTORY_WINDOW*2)  # Considera mensagens do aluno e respostas do sistema
+        .limit(
+            HISTORY_WINDOW * 2
+        )  # Considera mensagens do aluno e respostas do sistema
     )
     messages = list(reversed(result.all()))
-    return [{"role":m.role, "content": m.content} for m in messages]
+    return [{"role": m.role, "content": m.content} for m in messages]
 
 
 @router.post("")
@@ -60,7 +62,7 @@ async def chat_pedagogico(
     try:
         chat_session = await _get_or_create_session(payload.student_id, session)
         history = await _get_recent_history(chat_session.id, session)
-        
+
         # Adiciona a nova mensagem ao histórico
         user_msg = ChatMessage(
             session_id=chat_session.id,
@@ -70,7 +72,7 @@ async def chat_pedagogico(
         session.add(user_msg)
         await session.commit()
 
-        #chama ia com historico
+        # chama ia com historico
         rag_response = await ask(
             payload.message,
             student_context=payload.student_context,
@@ -94,12 +96,13 @@ async def chat_pedagogico(
             "sources": [],
         }
 
+
 @router.post("/stream")
 async def chat_stream(
     payload: ChatRequest,
     session: AsyncSession = Depends(get_session),
 ):
-    
+
     # Fallback para contexto padrão se o frontend não enviar
     ctx = payload.student_context or {
         "name": "Aluno Padrão",
@@ -109,7 +112,7 @@ async def chat_stream(
     chat_session = await _get_or_create_session(payload.student_id, session)
     history = await _get_recent_history(chat_session.id, session)
 
-    #grava msg usuario antes do stream
+    # grava msg usuario antes do stream
     user_msg = ChatMessage(
         session_id=chat_session.id,
         role="user",
@@ -128,7 +131,7 @@ async def chat_stream(
                 accumulated.append(token)
                 yield token
         finally:
-            #grava resposta completa após o stream
+            # grava resposta completa após o stream
             if accumulated:
                 full_response = "".join(accumulated)
                 assistant_msg = ChatMessage(
@@ -140,6 +143,7 @@ async def chat_stream(
                 await session.commit()
 
     return StreamingResponse(event_generator(), media_type="text/plain")
+
 
 @router.get("/history/{student_id}", response_model=None)
 async def get_chat_history(

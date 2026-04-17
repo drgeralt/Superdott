@@ -10,7 +10,7 @@ client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
 # modelo temporário talvez, era o que tinha mais cota
 GENERATION_MODEL = "models/gemini-3.1-flash-lite-preview"
-#GENERATION_MODEL = "models/gemini-1.5-flash" # troca teste
+# GENERATION_MODEL = "models/gemini-1.5-flash" # troca teste
 
 
 @dataclass
@@ -27,6 +27,7 @@ async def ask(
     top_k: int = 5,
     similarity_threshold: float = 0.5,
 ) -> RAGResponse:
+
     try:
         # 1. Busca no banco
         chunks = await retrieve(
@@ -38,7 +39,7 @@ async def ask(
             model=GENERATION_MODEL,
             contents=build_prompt(question, chunks, student_context),
         )
-     
+
         return RAGResponse(
             answer=response.text,
             sources=list(set([c.source for c in chunks])),
