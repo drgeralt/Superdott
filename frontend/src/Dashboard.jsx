@@ -12,7 +12,7 @@ import logoImg from './assets/img/logo.png';
 import noUserPfp from './assets/img/no-user-pfp.jpg';
 
 const navItems = [
-    { label: 'Dashboard', href: '/' },
+    { label: 'Dashboard', href: '/dashboard' },
     { label: 'Triagem', href: '/triagem' },
     { label: 'Relatórios', href: '#' }
 ];
@@ -54,7 +54,7 @@ const Dashboard = () => {
                     <PillNav
                         logo={logoImg}
                         items={navItems}
-                        activeHref="/"
+                        activeHref="/dashboard"
                         hoveredPillTextColor="#ffffff"
                     />
                 </div>

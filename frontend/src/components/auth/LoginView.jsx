@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import logoNegative from '../../assets/img/logo-negative.png';
+import { useNavigate } from 'react-router-dom';
 
 const LoginVisual = () => (
     <section className="hidden lg:flex flex-col justify-between p-8 lg:p-12 relative overflow-hidden bg-[linear-gradient(135deg,#E4F2EA_0%,#f9f9ff_100%)] h-full">
@@ -15,7 +16,7 @@ const LoginVisual = () => (
                     Transformando dados em <span className="text-primary-navy">excelência.</span>
                 </h1>
                 <p className="text-on-surface-variant text-base xl:text-lg max-w-sm">
-                    Uma plataforma editorial desenhada para coordenadores e docentes que valorizam a precisão e o impacto educacional.
+                    Uma plataforma desenhada para responsáveis e docentes que valorizam a educação.
                 </p>
             </div>
         </div>
@@ -43,7 +44,6 @@ const ProfileButton = ({ id, icon, label, isActive, onSelect }) => {
             onClick={() => onSelect(id)}
             className={`flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all active:scale-95 group ${isActive ? 'bg-primary-navy/5 border-2 border-primary-navy/20' : 'bg-surface-container-low hover:bg-surface-container-high border-2 border-transparent'}`}
         >
-            {/* Ajustado: w-12 h-12 para w-10 h-10 */}
             <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm transition-colors ${isActive ? 'bg-primary-navy text-white' : 'bg-white text-on-surface-variant group-hover:shadow-md'}`}>
                 <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}>{icon}</span>
             </div>
@@ -57,10 +57,10 @@ const ProfileButton = ({ id, icon, label, isActive, onSelect }) => {
 const LoginForm = () => {
     const [activeProfile, setActiveProfile] = useState('docente');
     const [showPassword, setShowPassword] = useState(false);
-
+    const navigate = useNavigate();
     const handleLogin = (e) => {
         e.preventDefault();
-        window.location.href = '/';
+        navigate('/dashboard');
     };
 
     return (
