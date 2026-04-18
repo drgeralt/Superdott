@@ -26,8 +26,15 @@ def build_prompt(
     question: str,
     chunks: list[RetrievedChunk],
     student_context: dict | None = None,
+    history: list[dict] | None = None,
 ) -> str:
     parts = [SYSTEM_PROMPT]
+
+    if history:
+        parts.append("\n\nHISTÓRICO DE CONVERSA:")
+        for msg in history:
+            role = "DOCENTE" if msg["role"] == "user" else "SUPERDOTT"
+            parts.append(f"\n[{role}]: {msg['content']}")
 
     if chunks:
         parts.append("\n\nCONTEXTO RECUPERADO:")

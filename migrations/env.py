@@ -8,6 +8,7 @@ from sqlmodel import SQLModel
 
 # 1. Importações (O linter não vai mexer aqui porque vamos usá-las)
 from src.core.config import settings as app_settings
+from src.models import ChatMessage, ChatSession
 from src.models.answer import Answer
 from src.models.assessment import Assessment
 from src.models.knowledge_base import KnowledgeBase
@@ -16,7 +17,16 @@ from src.models.student import Student
 from src.models.token import Token
 
 # Forçamos o uso para o linter e para garantir o registro no Metadata
-_all_models = [School, Student, Assessment, Answer, KnowledgeBase, Token]
+_all_models = [
+    School,
+    Student,
+    Assessment,
+    Answer,
+    KnowledgeBase,
+    Token,
+    ChatSession,
+    ChatMessage,
+]
 
 config = context.config
 if config.config_file_name is not None:
@@ -46,7 +56,7 @@ async def run_async_migrations() -> None:
 
     # USAMOS .connect() para poder rodar a extensão fora de uma transação se necessário
     async with connectable.connect() as connection:
-        # A. Garantir a extensão vector (algumas vezes falha dentro de transações de tabela)
+        # A. Garantir a extensão vector
         await connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
         await connection.commit()
 

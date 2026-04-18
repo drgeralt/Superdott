@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 
-from src.generated.prisma import Prisma
+import asyncpg
+
+from src.core.config import settings
 from src.rag.embedder import embed_query
 
 
@@ -13,19 +15,24 @@ class RetrievedChunk:
 
 
 async def retrieve(question: str, top_k: int = 5, similarity_threshold: float = 0.5):
-    db = Prisma()
-    await db.connect()
+    query_vector = embed_query(question)
+    vector_str = "[" + ",".join(str(x) for x in query_vector) + "]"
+
+    conn = await asyncpg.connect(settings.DATABASE_URL)
 
     try:
-        query_vector = embed_query(question)
-        # SQL puro via Prisma para busca vetorial
-        sql = """
-            SELECT id, content, source, 1 - (embedding <=> $1::vector) AS similarity
+        rows = await conn.fetch(
+            """
+            SELECT id::text, content, source,
+                1 - (embedding <=> $1::vector) AS similarity
             FROM knowledge_base
             WHERE 1 - (embedding <=> $1::vector) >= $2
             ORDER BY embedding <=> $1::vector LIMIT $3
-        """
-        rows = await db.query_raw(sql, str(query_vector), similarity_threshold, top_k)
+            """,
+            vector_str,
+            similarity_threshold,
+            top_k,
+        )
 
         return [
             RetrievedChunk(
@@ -37,4 +44,4 @@ async def retrieve(question: str, top_k: int = 5, similarity_threshold: float = 
             for row in rows
         ]
     finally:
-        await db.disconnect()
+        await conn.close()

@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+const { useState, useEffect, useRef } = React;
 
 const AIChat = ({ student }) => {
     const [messages, setMessages] = useState([
         {
             id: 'welcome',
             role: 'ai',
-            text: 'Olá, sou seu Assistente Pedagógico. Selecione um aluno na lista ao lado para iniciarmos uma análise baseada no banco de dados e nas diretrizes do MEC.',
+            text: 'Olá, Professor. Sou seu Assistente Pedagógico. Selecione um aluno na lista ao lado para iniciarmos uma análise baseada no banco de dados e nas diretrizes do MEC.',
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
     ]);
@@ -32,15 +32,21 @@ const AIChat = ({ student }) => {
                 text: `Analisando perfil de <strong>${student.full_name}</strong>. Como posso ajudar com o plano de aula hoje?`,
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
-            setTimeout(() => {
-                setMessages(prev => [...prev, systemMsg]);
-            }, 0);
-        }// eslint-disable-next-line react-hooks/exhaustive-deps
+            setMessages(prev => [...prev, systemMsg]);
+        }
     }, [student?.id]);
 
     const handleSend = async (e) => {
         e.preventDefault();
-        if (!inputValue.trim() || isStreaming) return;
+        if (!inputValue.trim() || isStreaming || !student?.id){
+            console.error("Mensagem vazia ou aluno não selecionado);") // Adiciona log para casos de erro
+            return;
+        }
+
+        console.log("Payload sendo enviado:", { //log debug
+        message: inputValue,
+        student_id: student.id
+        });
 
         const userMsg = {
             id: Date.now(),
@@ -53,13 +59,17 @@ const AIChat = ({ student }) => {
         setInputValue('');
         setIsStreaming(true);
 
+        console.log("DEBUG: Enviando ID ->", student?.id); // Log para verificar o ID do aluno sendo enviado
+
         try {
-            const response = await fetch('/api/chat', {
+            // CHAMADA REAL PARA O BACKEND
+            const response = await fetch('http://localhost:8000/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     message: inputValue,
-                    student_context: student
+                    student_id: student?.id, // Passa o ID do aluno para o backend
+                    student_context: student // Passa o objeto do aluno (id, scores, etc)
                 })
             });
 
@@ -71,18 +81,18 @@ const AIChat = ({ student }) => {
                 id: Date.now() + 1,
                 role: 'ai',
                 text: data.text,
-                sources: data.sources,
+                sources: data.sources, // Fontes do RAG (ex: altashabilidades.pdf)
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
 
             setMessages(prev => [...prev, aiMsg]);
 
-        } catch {
+        } catch (error) {
             setMessages(prev => [...prev, {
                 id: Date.now() + 1,
                 role: 'ai',
-                text: 'Desculpe, tive um erro ao acessar a base de conhecimento. Verifique sua conexão e tente novamente mais tarde.',
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                text: 'Desculpe, professor. Tive um erro ao acessar a base de conhecimento. Verifique se o servidor está rodando.',
+                time: 'Erro'
             }]);
         } finally {
             setIsStreaming(false);
@@ -90,9 +100,9 @@ const AIChat = ({ student }) => {
     };
 
     return (
-        <section className="col-span-12 md:col-span-5 flex flex-col bg-surface-container-low rounded-xl overflow-hidden shadow-sm border border-outline-variant/10 h-auto md:h-[calc(100vh-200px)] min-h-[500px]">
+        <section className="col-span-12 md:col-span-5 h-[650px] flex flex-col bg-surface-container-low rounded-xl overflow-hidden shadow-sm border border-outline-variant/10">
             {/* Header Dinâmico */}
-            <header className="px-6 py-4 bg-white/80 backdrop-blur-md flex justify-between items-center border-b border-outline-variant/10 shrink-0">
+            <header className="px-6 py-4 bg-white/80 backdrop-blur-md flex justify-between items-center border-b border-outline-variant/10">
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary-navy to-teal-custom flex items-center justify-center text-white">
                         <span className="material-symbols-outlined text-xl">auto_awesome</span>
@@ -112,16 +122,18 @@ const AIChat = ({ student }) => {
             </header>
 
             {/* Mensagens */}
-            <div ref={chatContainerRef} className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6 scroll-smooth">
+            <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
                 {messages.map((msg) => (
                     <div key={msg.id} className={`flex flex-col gap-2 max-w-[85%] ${msg.role === 'user' ? 'items-end ml-auto' : 'items-start'}`}>
                         <div className={`p-4 rounded-2xl shadow-sm text-sm leading-relaxed ${msg.role === 'user'
                             ? 'bg-primary-navy text-white rounded-tr-none'
                             : 'bg-white rounded-tl-none border border-outline-variant/10'
-                        }`}>
+                            }`}>
 
+                            {/* Renderização de HTML (para negritos da IA) */}
                             <div dangerouslySetInnerHTML={{ __html: msg.text.replace(/\n/g, '<br/>') }} />
 
+                            {/* Fontes extraídas do RAG */}
                             {msg.sources && msg.sources.length > 0 && (
                                 <div className="mt-4 pt-4 border-t border-slate-100">
                                     <p className="text-[10px] font-bold uppercase tracking-widest text-teal-custom mb-2">Referências Técnicas</p>
@@ -148,7 +160,7 @@ const AIChat = ({ student }) => {
             </div>
 
             {/* Input */}
-            <footer className="p-4 bg-white border-t border-outline-variant/10 shrink-0">
+            <footer className="p-4 bg-white border-t border-outline-variant/10">
                 <form onSubmit={handleSend} className="relative flex items-center">
                     <input
                         value={inputValue}
@@ -171,4 +183,4 @@ const AIChat = ({ student }) => {
     );
 };
 
-export default AIChat;
+window.AIChat = AIChat;
