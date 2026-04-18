@@ -59,7 +59,7 @@ const TalentMap = ({ student }) => {
 
         return () => {
             if (chartInstance.current) chartInstance.current.destroy();
-        };
+        };// eslint-disable-next-line react-hooks/exhaustive-deps
     }, [student?.id, student?.scores]);
 
     return (

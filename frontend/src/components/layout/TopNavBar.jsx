@@ -18,3 +18,5 @@ const TopNavBar = () => (
     </nav>
 
 );
+
+export default TopNavBar;

@@ -32,8 +32,10 @@ const AIChat = ({ student }) => {
                 text: `Analisando perfil de <strong>${student.full_name}</strong>. Como posso ajudar com o plano de aula hoje?`,
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
-            setMessages(prev => [...prev, systemMsg]);
-        }
+            setTimeout(() => {
+                setMessages(prev => [...prev, systemMsg]);
+            }, 0);
+        }// eslint-disable-next-line react-hooks/exhaustive-deps
     }, [student?.id]);
 
     const handleSend = async (e) => {
@@ -75,7 +77,7 @@ const AIChat = ({ student }) => {
 
             setMessages(prev => [...prev, aiMsg]);
 
-        } catch (error) {
+        } catch {
             setMessages(prev => [...prev, {
                 id: Date.now() + 1,
                 role: 'ai',

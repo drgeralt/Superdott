@@ -31,3 +31,5 @@ const SideNavBar = () => (
         </footer>
     </aside>
 );
+
+export default SideNavBar;
