@@ -26,7 +26,7 @@ const Dashboard = () => {
 
     useEffect(() => {
         fetchStudents();
-    }, []);
+    }, [fetchStudents]);
 
     return (
         <div className="min-h-screen bg-surface-container-lowest">

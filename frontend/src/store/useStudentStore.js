@@ -17,7 +17,7 @@ const useStudentStore = create((set) => ({
                 selectedStudent: data.length > 0 ? data[0] : null,
                 isLoading: false,
             });
-        } catch (err) {
+        } catch {
             set({ error: 'Não foi possível conectar ao servidor.', isLoading: false });
         }
     },
