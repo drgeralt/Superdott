@@ -1,52 +1,28 @@
-const { createContext, useContext, useState, useCallback } = React;
+import { create } from 'zustand';
 
-const StudentContext = createContext(null);
+const useStudentStore = create((set) => ({
+    students: [],
+    selectedStudent: null,
+    isLoading: true,
+    error: null,
 
-const StudentProvider = ({ children }) => {
-    const [students, setStudents] = useState([]);
-    const [selectedStudent, setSelectedStudent] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-    const fetchStudents = useCallback(async () => {
-        setIsLoading(true);
-        setError(null);
+    fetchStudents: async () => {
+        set({ isLoading: true, error: null });
         try {
-            const res = await fetch('http://localhost:8000/api/students');
+            const res = await fetch('/api/students');
             if (!res.ok) throw new Error('Falha ao buscar alunos');
             const data = await res.json();
-            setStudents(data);
-            if (data.length > 0) setSelectedStudent(data[0]);
+            set({
+                students: data,
+                selectedStudent: data.length > 0 ? data[0] : null,
+                isLoading: false,
+            });
         } catch (err) {
-            setError('Não foi possível conectar ao servidor.');
-        } finally {
-            setIsLoading(false);
+            set({ error: 'Não foi possível conectar ao servidor.', isLoading: false });
         }
-    }, []);
+    },
 
-    const selectStudent = useCallback((student) => {
-        setSelectedStudent(student);
-    }, []);
+    selectStudent: (student) => set({ selectedStudent: student }),
+}));
 
-    return (
-        <StudentContext.Provider value={{
-            students,
-            selectedStudent,
-            isLoading,
-            error,
-            fetchStudents,
-            selectStudent,
-        }}>
-            {children}
-        </StudentContext.Provider>
-    );
-};
-
-const useStudentStore = (selector) => {
-    const context = useContext(StudentContext);
-    if (!context) throw new Error('useStudentStore deve ser usado dentro do StudentProvider');
-    return selector(context);
-};
-
-window.StudentProvider = StudentProvider;
-window.useStudentStore = useStudentStore;
+export default useStudentStore;

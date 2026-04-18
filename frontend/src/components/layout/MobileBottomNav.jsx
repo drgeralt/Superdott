@@ -18,3 +18,5 @@ const MobileBottomNav = () => (
         </button>
     </nav>
 );
+
+export default MobileBottomNav;

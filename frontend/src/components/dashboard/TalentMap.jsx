@@ -1,4 +1,6 @@
-const { useEffect, useRef } = React;
+import { useEffect, useRef } from 'react';
+import Chart from 'chart.js/auto';
+import useStudentStore from '../../store/useStudentStore';
 
 const TalentMap = () => {
     const selectedStudent = useStudentStore(state => state.selectedStudent);
@@ -17,7 +19,7 @@ const TalentMap = () => {
         if (chartInstance.current) chartInstance.current.destroy();
 
         const ctx = chartRef.current.getContext('2d');
-        chartInstance.current = new window.Chart(ctx, {
+        chartInstance.current = new Chart(ctx, {
             type: 'radar',
             data: {
                 labels: ['Intelectual', 'Criativa', 'Liderança'],
@@ -60,7 +62,6 @@ const TalentMap = () => {
         return () => { if (chartInstance.current) chartInstance.current.destroy(); };
     }, [data]);
 
-    // Loading state
     if (isLoading) {
         return (
             <section className="col-span-12 md:col-span-4 space-y-6">
@@ -72,7 +73,6 @@ const TalentMap = () => {
         );
     }
 
-    // Sem aluno selecionado
     if (!selectedStudent) {
         return (
             <section className="col-span-12 md:col-span-4 space-y-6">
@@ -84,32 +84,32 @@ const TalentMap = () => {
     }
 
     return (
-        <section className="col-span-12 md:col-span-4 space-y-6">
-            <div className="bg-surface-container-lowest rounded-xl p-6 shadow-sm relative overflow-hidden">
+        <section className="col-span-12 md:col-span-4">
+            <div className="bg-surface-container-lowest rounded-xl p-6 shadow-sm relative overflow-hidden border border-outline-variant/10 flex flex-col h-auto md:h-[calc(100vh-200px)] min-h-[500px]">
                 <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
                     <span className="material-symbols-outlined text-6xl text-primary-navy">psychology</span>
                 </div>
-                <h2 className="font-headline font-extrabold text-xl mb-2 flex items-center gap-2 text-primary-navy">
+                <h2 className="font-headline font-extrabold text-xl mb-2 flex items-center gap-2 text-primary-navy shrink-0">
                     Mapa de Talentos
                 </h2>
                 <p className="text-xs text-on-surface-variant mb-4 font-medium">
                     {selectedStudent.full_name}
                 </p>
-                <div className="relative w-full aspect-square flex items-center justify-center mb-6">
+                <div className="relative w-full max-w-[320px] mx-auto flex-1 min-h-0 flex items-center justify-center mb-6">
                     <div className="w-full h-full absolute inset-0">
                         <canvas ref={chartRef}></canvas>
                     </div>
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 text-[10px] font-bold uppercase text-white bg-primary-navy px-3 py-1 rounded-full z-10 shadow-sm">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 text-[10px] font-bold uppercase text-white bg-primary-navy px-3 py-1 rounded-full z-10 shadow-sm pointer-events-none">
                         Intelectual
                     </div>
-                    <div className="absolute bottom-4 right-0 text-[10px] font-bold uppercase text-white bg-teal-custom px-3 py-1 rounded-full z-10 shadow-sm">
+                    <div className="absolute bottom-2 right-[-10px] text-[10px] font-bold uppercase text-white bg-teal-custom px-3 py-1 rounded-full z-10 shadow-sm pointer-events-none">
                         Criativa
                     </div>
-                    <div className="absolute bottom-4 left-0 text-[10px] font-bold uppercase text-white bg-orange-custom px-3 py-1 rounded-full z-10 shadow-sm">
+                    <div className="absolute bottom-2 left-[-10px] text-[10px] font-bold uppercase text-white bg-orange-custom px-3 py-1 rounded-full z-10 shadow-sm pointer-events-none">
                         Liderança
                     </div>
                 </div>
-                <div className="space-y-4">
+                <div className="mt-auto shrink-0">
                     <div className="bg-mint-light p-4 rounded-xl">
                         <h4 className="text-xs font-bold uppercase tracking-widest text-primary-navy mb-2">Scores da Triagem</h4>
                         <div className="space-y-1 text-sm text-on-surface">
@@ -124,4 +124,4 @@ const TalentMap = () => {
     );
 };
 
-window.TalentMap = TalentMap;
+export default TalentMap;

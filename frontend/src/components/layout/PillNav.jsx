@@ -1,19 +1,20 @@
-const { useEffect, useRef, useState } = React;
+import { useEffect, useRef, useState } from 'react';
+import gsap from 'gsap';
 
 const PillNav = ({
-    logo,
-    logoAlt = 'Logo',
-    items,
-    activeHref,
-    className = '',
-    ease = 'power3.easeOut',
-    baseColor = '#0C2C47',
-    pillColor = '#E4F2EA',
-    hoveredPillTextColor = '#0C2C47',
-    pillTextColor,
-    onMobileMenuClick,
-    initialLoadAnimation = true
-}) => {
+                     logo,
+                     logoAlt = 'Logo',
+                     items,
+                     activeHref,
+                     className = '',
+                     ease = 'power3.easeOut',
+                     baseColor = '#0C2C47',
+                     pillColor = '#E4F2EA',
+                     hoveredPillTextColor = '#0C2C47',
+                     pillTextColor,
+                     onMobileMenuClick,
+                     initialLoadAnimation = true
+                 }) => {
     const resolvedPillTextColor = pillTextColor ?? baseColor;
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const circleRefs = useRef([]);
@@ -167,10 +168,10 @@ const PillNav = ({
     };
 
     const cssVars = {
-        ['--base']: baseColor,
-        ['--pill-bg']: pillColor,
-        ['--hover-text']: hoveredPillTextColor,
-        ['--pill-text']: resolvedPillTextColor
+        '--base': baseColor,
+        '--pill-bg': pillColor,
+        '--hover-text': hoveredPillTextColor,
+        '--pill-text': resolvedPillTextColor
     };
 
     return (
@@ -180,7 +181,8 @@ const PillNav = ({
                     className="pill-logo"
                     href={items?.[0]?.href || '#'}
                     aria-label="Home"
-                    ref={el => { logoRef.current = el; }}
+                    onMouseEnter={handleLogoEnter}
+                    ref={logoRef}
                 >
                     <img src={logo} alt={logoAlt} ref={logoImgRef} className="h-8" />
                 </a>
@@ -218,17 +220,39 @@ const PillNav = ({
                 </button>
             </nav>
 
-            <div className="mobile-menu-popover mobile-only" ref={mobileMenuRef} style={cssVars}>
+            <div
+                className={`mobile-menu-popover mobile-only ${isMobileMenuOpen ? 'is-open' : ''}`}
+                ref={mobileMenuRef}
+                style={cssVars}
+            >
                 <ul className="mobile-menu-list">
                     {items.map((item, i) => (
                         <li key={item.href || `mobile-item-${i}`}>
-                            <a href={item.href} className={`mobile-menu-link${activeHref === item.href ? ' is-active' : ''}`} onClick={() => setIsMobileMenuOpen(false)}>
+                            <a
+                                href={item.href}
+                                className={`mobile-menu-link${activeHref === item.href ? ' is-active' : ''}`}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                                <span className="material-symbols-outlined text-sm mr-2">arrow_forward</span>
                                 {item.label}
                             </a>
                         </li>
                     ))}
+                    {/* Espaço para futuras opções extras */}
+                    <li className="border-t border-white/10 mt-2 pt-2">
+                        <a
+                            href="#config"
+                            className="mobile-menu-link opacity-70"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            <span className="material-symbols-outlined text-sm mr-2">settings</span>
+                            Configurações
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
     );
 };
+
+export default PillNav;
