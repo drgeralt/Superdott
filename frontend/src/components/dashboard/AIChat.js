@@ -39,7 +39,15 @@ const AIChat = () => {
 
     const handleSend = async (e) => {
         e.preventDefault();
-        if (!inputValue.trim() || isStreaming) return;
+        if (!inputValue.trim() || isStreaming || !student?.id){
+            console.error("Mensagem vazia ou aluno não selecionado);") // Adiciona log para casos de erro
+            return;
+        }
+
+        console.log("Payload sendo enviado:", { //log debug
+        message: inputValue,
+        student_id: student.id
+        });
 
         const userMsg = {
             id: Date.now(),
@@ -52,6 +60,8 @@ const AIChat = () => {
         setInputValue('');
         setIsStreaming(true);
 
+        console.log("DEBUG: Enviando ID ->", student?.id); // Log para verificar o ID do aluno sendo enviado
+
         try {
             // CHAMADA REAL PARA O BACKEND
             const response = await fetch('http://localhost:8000/api/chat', {
@@ -59,6 +69,7 @@ const AIChat = () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     message: inputValue,
+                    student_id: student?.id, // Passa o ID do aluno para o backend
                     student_context: student // Passa o objeto do aluno (id, scores, etc)
                 })
             });
