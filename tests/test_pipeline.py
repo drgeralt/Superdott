@@ -1,7 +1,8 @@
-from src.rag.retriever import RetrievedChunk
-from src.rag.prompt import build_prompt
 from google import genai
+
 from src.core.config import settings
+from src.rag.prompt import build_prompt
+from src.rag.retriever import RetrievedChunk
 
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
@@ -34,7 +35,7 @@ prompt = build_prompt(
 )
 
 response = client.models.generate_content(
-    #modelo temporário talvez, era o que tinha mais cota
+    # modelo temporário talvez, era o que tinha mais cota
     model="models/gemini-3.1-flash-lite-preview",
     contents=prompt,
 )

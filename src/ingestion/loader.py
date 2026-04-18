@@ -4,6 +4,7 @@ from pathlib import Path
 
 try:
     from pypdf import PdfReader
+
     PDF_SUPPORT = True
 except ImportError:
     PDF_SUPPORT = False
@@ -11,14 +12,13 @@ except ImportError:
 
 @dataclass
 class DocumentChunk:
-    content: str      # texto do trecho
-    source: str       # nome do arquivo
+    content: str  # texto do trecho
+    source: str  # nome do arquivo
     chunk_index: int  # posição do trecho no documento
 
 
 def load_documents(
-    docs_dir: str | Path,
-    extensions: tuple = (".pdf", ".txt")
+    docs_dir: str | Path, extensions: tuple = (".pdf", ".txt")
 ) -> list[DocumentChunk]:
     """
     aqui ele vai ler todos os documentos de uma pasta e retorna lista de chunks
@@ -78,7 +78,7 @@ def _split_into_chunks(
     chunk_size: int = 500,
     overlap: int = 50,
 ) -> list[DocumentChunk]:
-    text = re.sub(r'\s+', ' ', text).strip()
+    text = re.sub(r"\s+", " ", text).strip()
     words = text.split()
 
     if not words:
@@ -88,7 +88,7 @@ def _split_into_chunks(
     step = chunk_size - overlap
 
     for i, start in enumerate(range(0, len(words), step)):
-        chunk_words = words[start:start + chunk_size]
+        chunk_words = words[start : start + chunk_size]
 
         if len(chunk_words) < 20 and i > 0:
             break

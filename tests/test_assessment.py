@@ -13,8 +13,7 @@ Como rodar:
 """
 
 import uuid
-from datetime import datetime, timedelta, timezone
-from decimal import Decimal
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -26,6 +25,7 @@ from src.core.database import engine, get_session
 # ---------------------------------------------------------------------------
 # Setup: sobrescreve a dependency de banco para usar a sessão de teste
 # ---------------------------------------------------------------------------
+
 
 def override_get_session():
     """
@@ -45,6 +45,7 @@ client = TestClient(app)
 # Fixtures: criam dados de teste no banco e limpam depois
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture()
 def db_session():
     """Sessão de banco disponível nos testes que precisam inserir dados direto."""
@@ -57,10 +58,7 @@ def sample_student(db_session: Session):
     """Cria um aluno de teste e retorna seu ID."""
     student_id = str(uuid.uuid4())
     db_session.exec(
-        text(
-            "INSERT INTO students (id, full_name, email) "
-            "VALUES (:id, :name, :email)"
-        ),
+        text("INSERT INTO students (id, full_name, email) VALUES (:id, :name, :email)"),
         params={
             "id": student_id,
             "name": "Aluno Teste Silva",
@@ -70,7 +68,9 @@ def sample_student(db_session: Session):
     db_session.commit()
     yield student_id
     # Limpeza após o teste
-    db_session.exec(text("DELETE FROM students WHERE id = :id"), params={"id": student_id})
+    db_session.exec(
+        text("DELETE FROM students WHERE id = :id"), params={"id": student_id}
+    )
     db_session.commit()
 
 
@@ -91,7 +91,9 @@ def sample_assessment(db_session: Session):
     )
     db_session.commit()
     yield assessment_id
-    db_session.exec(text("DELETE FROM assessments WHERE id = :id"), params={"id": assessment_id})
+    db_session.exec(
+        text("DELETE FROM assessments WHERE id = :id"), params={"id": assessment_id}
+    )
     db_session.commit()
 
 
@@ -99,7 +101,7 @@ def sample_assessment(db_session: Session):
 def valid_token(db_session: Session, sample_student, sample_assessment):
     """Cria um token válido (não usado, não expirado) e retorna seu valor."""
     token_value = f"test_token_{uuid.uuid4().hex[:16]}"
-    expires = datetime.now(timezone.utc) + timedelta(days=7)
+    expires = datetime.now(UTC) + timedelta(days=7)
 
     db_session.exec(
         text(
@@ -116,7 +118,9 @@ def valid_token(db_session: Session, sample_student, sample_assessment):
     db_session.commit()
     yield token_value
     # Limpeza (cascade deleta answers também)
-    db_session.exec(text("DELETE FROM tokens WHERE token = :token"), params={"token": token_value})
+    db_session.exec(
+        text("DELETE FROM tokens WHERE token = :token"), params={"token": token_value}
+    )
     db_session.commit()
 
 
@@ -137,7 +141,9 @@ def used_token(db_session: Session, sample_student, sample_assessment):
     )
     db_session.commit()
     yield token_value
-    db_session.exec(text("DELETE FROM tokens WHERE token = :token"), params={"token": token_value})
+    db_session.exec(
+        text("DELETE FROM tokens WHERE token = :token"), params={"token": token_value}
+    )
     db_session.commit()
 
 
@@ -145,7 +151,7 @@ def used_token(db_session: Session, sample_student, sample_assessment):
 def expired_token(db_session: Session, sample_student, sample_assessment):
     """Cria um token EXPIRADO (expires_at no passado)."""
     token_value = f"expired_token_{uuid.uuid4().hex[:16]}"
-    past = datetime.now(timezone.utc) - timedelta(days=1)
+    past = datetime.now(UTC) - timedelta(days=1)
     db_session.exec(
         text(
             "INSERT INTO tokens (token, student_id, assessment_id, is_used, expires_at) "
@@ -160,7 +166,9 @@ def expired_token(db_session: Session, sample_student, sample_assessment):
     )
     db_session.commit()
     yield token_value
-    db_session.exec(text("DELETE FROM tokens WHERE token = :token"), params={"token": token_value})
+    db_session.exec(
+        text("DELETE FROM tokens WHERE token = :token"), params={"token": token_value}
+    )
     db_session.commit()
 
 
@@ -168,8 +176,8 @@ def expired_token(db_session: Session, sample_student, sample_assessment):
 # Testes: GET /assessment/{token}
 # ---------------------------------------------------------------------------
 
-class TestGetAssessment:
 
+class TestGetAssessment:
     def test_retorna_contexto_com_token_valido(self, valid_token):
         """Cenário feliz: token válido retorna dados do aluno e do questionário."""
         response = client.get(f"/assessment/{valid_token}")
@@ -206,9 +214,11 @@ class TestGetAssessment:
 # Testes: POST /assessment/{token}/submit
 # ---------------------------------------------------------------------------
 
-class TestSubmitAssessment:
 
-    def test_submissao_salva_respostas_e_invalida_token(self, valid_token, db_session: Session):
+class TestSubmitAssessment:
+    def test_submissao_salva_respostas_e_invalida_token(
+        self, valid_token, db_session: Session
+    ):
         """
         Cenário principal:
           1. Envia respostas com scores.
@@ -216,7 +226,10 @@ class TestSubmitAssessment:
           3. Verifica que o token foi invalidado no banco.
         """
         payload = [
-            {"content_text": "Demonstra interesse elevado em matemática.", "score": 9.0},
+            {
+                "content_text": "Demonstra interesse elevado em matemática.",
+                "score": 9.0,
+            },
             {"content_text": "Lidera projetos em sala de aula.", "score": 8.0},
             {"content_text": "Criatividade acima da média.", "score": 7.0},
         ]
@@ -237,7 +250,7 @@ class TestSubmitAssessment:
             params={"token": valid_token},
         ).fetchone()
 
-        assert row[0] is True   # is_used = TRUE
+        assert row[0] is True  # is_used = TRUE
         assert row[1] is not None  # used_at foi preenchido
 
     def test_submissao_com_respostas_qualitativas_sem_score(self, valid_token):
