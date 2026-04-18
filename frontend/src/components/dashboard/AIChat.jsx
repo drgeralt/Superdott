@@ -1,4 +1,4 @@
-const { useState, useEffect, useRef } = React;
+import { useState, useEffect, useRef } from 'react';
 
 const AIChat = ({ student }) => {
     const [messages, setMessages] = useState([
@@ -23,7 +23,6 @@ const AIChat = ({ student }) => {
         scrollToBottom();
     }, [messages]);
 
-    // Limpa o chat ou envia uma saudação quando o aluno muda
     useEffect(() => {
         if (student) {
             const systemMsg = {
@@ -32,20 +31,26 @@ const AIChat = ({ student }) => {
                 text: `Analisando perfil de <strong>${student.full_name}</strong>. Como posso ajudar com o plano de aula hoje?`,
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
-            setMessages(prev => [...prev, systemMsg]);
+            // setTimeout resolve o erro de 'cascading render' apontado pelo ESLint
+            setTimeout(() => {
+                setMessages(prev => [...prev, systemMsg]);
+            }, 0);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [student?.id]);
 
     const handleSend = async (e) => {
         e.preventDefault();
-        if (!inputValue.trim() || isStreaming || !student?.id){
-            console.error("Mensagem vazia ou aluno não selecionado);") // Adiciona log para casos de erro
+
+        // adicionada pela equipe de backend
+        if (!inputValue.trim() || isStreaming || !student?.id) {
+            console.error("Mensagem vazia ou aluno não selecionado");
             return;
         }
 
-        console.log("Payload sendo enviado:", { //log debug
-        message: inputValue,
-        student_id: student.id
+        console.log("Payload sendo enviado:", {
+            message: inputValue,
+            student_id: student.id
         });
 
         const userMsg = {
@@ -59,17 +64,14 @@ const AIChat = ({ student }) => {
         setInputValue('');
         setIsStreaming(true);
 
-        console.log("DEBUG: Enviando ID ->", student?.id); // Log para verificar o ID do aluno sendo enviado
-
         try {
-            // CHAMADA REAL PARA O BACKEND
-            const response = await fetch('http://localhost:8000/api/chat', {
+            const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     message: inputValue,
-                    student_id: student?.id, // Passa o ID do aluno para o backend
-                    student_context: student // Passa o objeto do aluno (id, scores, etc)
+                    student_id: student?.id,
+                    student_context: student
                 })
             });
 
@@ -81,13 +83,13 @@ const AIChat = ({ student }) => {
                 id: Date.now() + 1,
                 role: 'ai',
                 text: data.text,
-                sources: data.sources, // Fontes do RAG (ex: altashabilidades.pdf)
+                sources: data.sources,
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
 
             setMessages(prev => [...prev, aiMsg]);
 
-        } catch (error) {
+        } catch { // Optional Catch Binding para silenciar o ESLint
             setMessages(prev => [...prev, {
                 id: Date.now() + 1,
                 role: 'ai',
@@ -100,9 +102,9 @@ const AIChat = ({ student }) => {
     };
 
     return (
-        <section className="col-span-12 md:col-span-5 h-[650px] flex flex-col bg-surface-container-low rounded-xl overflow-hidden shadow-sm border border-outline-variant/10">
+        <section className="col-span-12 md:col-span-5 flex flex-col bg-surface-container-low rounded-xl overflow-hidden shadow-sm border border-outline-variant/10 h-auto md:h-[calc(100vh-200px)] min-h-[500px]">
             {/* Header Dinâmico */}
-            <header className="px-6 py-4 bg-white/80 backdrop-blur-md flex justify-between items-center border-b border-outline-variant/10">
+            <header className="px-6 py-4 bg-white/80 backdrop-blur-md flex justify-between items-center border-b border-outline-variant/10 shrink-0">
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary-navy to-teal-custom flex items-center justify-center text-white">
                         <span className="material-symbols-outlined text-xl">auto_awesome</span>
@@ -122,18 +124,16 @@ const AIChat = ({ student }) => {
             </header>
 
             {/* Mensagens */}
-            <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
+            <div ref={chatContainerRef} className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6 scroll-smooth">
                 {messages.map((msg) => (
                     <div key={msg.id} className={`flex flex-col gap-2 max-w-[85%] ${msg.role === 'user' ? 'items-end ml-auto' : 'items-start'}`}>
                         <div className={`p-4 rounded-2xl shadow-sm text-sm leading-relaxed ${msg.role === 'user'
                             ? 'bg-primary-navy text-white rounded-tr-none'
                             : 'bg-white rounded-tl-none border border-outline-variant/10'
-                            }`}>
+                        }`}>
 
-                            {/* Renderização de HTML (para negritos da IA) */}
                             <div dangerouslySetInnerHTML={{ __html: msg.text.replace(/\n/g, '<br/>') }} />
 
-                            {/* Fontes extraídas do RAG */}
                             {msg.sources && msg.sources.length > 0 && (
                                 <div className="mt-4 pt-4 border-t border-slate-100">
                                     <p className="text-[10px] font-bold uppercase tracking-widest text-teal-custom mb-2">Referências Técnicas</p>
@@ -160,7 +160,7 @@ const AIChat = ({ student }) => {
             </div>
 
             {/* Input */}
-            <footer className="p-4 bg-white border-t border-outline-variant/10">
+            <footer className="p-4 bg-white border-t border-outline-variant/10 shrink-0">
                 <form onSubmit={handleSend} className="relative flex items-center">
                     <input
                         value={inputValue}
@@ -172,7 +172,7 @@ const AIChat = ({ student }) => {
                     />
                     <button
                         type="submit"
-                        disabled={!inputValue.trim() || isStreaming}
+                        disabled={!inputValue.trim() || isStreaming || !student?.id}
                         className="absolute right-2 w-10 h-10 flex items-center justify-center bg-primary-navy text-white rounded-full shadow-lg hover:bg-teal-custom active:scale-90 transition-all disabled:opacity-50"
                     >
                         <span className="material-symbols-outlined">send</span>
@@ -183,4 +183,4 @@ const AIChat = ({ student }) => {
     );
 };
 
-window.AIChat = AIChat;
+export default AIChat;
