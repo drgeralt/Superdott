@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, status
-from sqlmodel.ext.asyncio.session import AsyncSession 
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.api.services.assessment_service import (
     AnswerInput,
@@ -11,6 +11,7 @@ from src.api.services.assessment_service import (
 from src.core.database import get_session
 
 router = APIRouter(tags=["Assessment"])
+
 
 @router.get(
     "/assessment/{token}",

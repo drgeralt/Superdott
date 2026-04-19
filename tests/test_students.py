@@ -35,6 +35,7 @@ async def _criar_aluno(session: AsyncSession) -> dict:
 
 # ─── Testes ──────────────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_get_students_retorna_200(async_client: AsyncClient):
     """GET /api/students deve retornar HTTP 200."""
@@ -78,6 +79,6 @@ async def test_get_students_contem_aluno_inserido(
     # Verifica o contrato do JSON — campos obrigatórios devem existir
     aluno_json = next(item for item in data if str(item["id"]) == str(aluno.id))
     assert "id" in aluno_json
-    assert "full_name" in aluno_json   # ← se renomear para "name", FALHA aqui
+    assert "full_name" in aluno_json  # ← se renomear para "name", FALHA aqui
     assert "email" in aluno_json
     assert aluno_json["full_name"] == "Ana Beatriz Teste"

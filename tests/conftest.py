@@ -15,8 +15,8 @@ _raw_url = os.getenv(
     "DATABASE_URL", "postgresql://admin:admin@localhost:5432/superdott"
 )
 TEST_DATABASE_URL = (
-    _raw_url.replace("postgresql://", "postgresql+asyncpg://")
-    .rsplit("/", 1)[0] + "/superdott_test"
+    _raw_url.replace("postgresql://", "postgresql+asyncpg://").rsplit("/", 1)[0]
+    + "/superdott_test"
 )
 
 
@@ -24,6 +24,7 @@ TEST_DATABASE_URL = (
 async def setup_test_database():
     """Cria as tabelas antes dos testes e apaga depois."""
     import src.models  # noqa: F401
+
     engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
@@ -46,11 +47,11 @@ async def db_session() -> AsyncSession:
     finally:
         try:
             await session.close()
-        except Exception:
+        except Exception:  # noqa: S110
             pass
         try:
             await engine.dispose()
-        except Exception:
+        except Exception:  # noqa: S110
             pass
 
 

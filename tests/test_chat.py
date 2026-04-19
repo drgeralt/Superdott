@@ -31,6 +31,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 # ─── Resposta fake que o mock vai retornar ────────────────────────────────────
 class FakeRAGResponse:
     """Simula o objeto de resposta do pipeline RAG."""
+
     answer = "Mocked AI Response: aluno demonstra altas habilidades."
     sources = ["manual_mec.pdf"]
 
@@ -51,6 +52,7 @@ async def _criar_aluno_para_chat(session: AsyncSession) -> uuid.UUID:
 
 
 # ─── Testes ──────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_chat_retorna_200_com_mock(
@@ -109,8 +111,8 @@ async def test_chat_retorna_campo_text(
         )
 
     data = response.json()
-    assert "text" in data        # ← contrato: campo 'text' deve existir
-    assert "sources" in data     # ← contrato: campo 'sources' deve existir
+    assert "text" in data  # ← contrato: campo 'text' deve existir
+    assert "sources" in data  # ← contrato: campo 'sources' deve existir
     assert isinstance(data["sources"], list)
 
 
