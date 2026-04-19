@@ -39,7 +39,8 @@ async def index_documents(docs_dir: str | Path, reset: bool = False) -> int:
 
             for i, chunk in enumerate(chunks):
                 print(
-                    f"[{i + 1}/{len(chunks)}] Vetorizando chunk #{chunk.chunk_index} de {chunk.source}"
+                    f"[{i + 1}/{len(chunks)}] Vetorizando chunk #{chunk.chunk_index} de\
+                    {chunk.source}"
                 )
 
                 try:
