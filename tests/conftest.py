@@ -6,6 +6,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
+from sqlalchemy import text
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -27,9 +28,15 @@ async def setup_test_database():
 
     engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
     async with engine.begin() as conn:
+        # --> A LINHA MÁGICA QUE SALVA O CI ESTÁ AQUI:
+        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        
         await conn.run_sync(SQLModel.metadata.create_all)
+    
     await engine.dispose()
+    
     yield
+    
     engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.drop_all)
