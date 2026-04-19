@@ -53,13 +53,14 @@ class IngestionService:
                     elif isinstance(obj, (float, int)):
                         yield float(obj)
 
-                # Achata qualquer estrutura que a SDK retornar e converte em lista nativa
+                # Achata qualquer estrutura que a SDK retornar
                 embedding_vector = list(extract_floats(response.embeddings))
 
                 # Trava de segurança para garantir o tamanho antes de bater no banco
                 if len(embedding_vector) != 3072:
                     raise ValueError(
-                        f"O modelo gerou um vetor de {len(embedding_vector)} posições, mas o banco exige 3072."
+                        f"O modelo gerou um vetor de {len(embedding_vector)} posições,\
+                            mas o banco exige 3072."
                     )
 
                 kb_record = KnowledgeBase(
@@ -83,6 +84,7 @@ class IngestionService:
         except Exception as e:
             await self.db.rollback()
             logger.error(
-                f"Erro na ingestão do documento {filename}. Rollback executado. Causa: {str(e)}"
+                f"Erro na ingestão do documento {filename}. Rollback executado. \
+                    Causa: {str(e)}"
             )
             raise RuntimeError(f"Falha na vetorização/persistência: {str(e)}") from e
