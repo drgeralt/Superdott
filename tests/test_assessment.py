@@ -19,7 +19,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, text
 
-from main import app
+from src.main import app
 from src.core.database import engine, get_session
 
 # ---------------------------------------------------------------------------
@@ -180,7 +180,7 @@ def expired_token(db_session: Session, sample_student, sample_assessment):
 class TestGetAssessment:
     def test_retorna_contexto_com_token_valido(self, valid_token):
         """Cenário feliz: token válido retorna dados do aluno e do questionário."""
-        response = client.get(f"/assessment/{valid_token}")
+        response = client.get(f"/api/assessment/{valid_token}")
 
         assert response.status_code == 200
         data = response.json()

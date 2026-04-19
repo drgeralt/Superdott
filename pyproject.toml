@@ -2,6 +2,7 @@
 line-length = 88
 target-version = "py311"
 src = ["src"]
+exclude = [".venv", "__pycache__", ".pytest_cache", ".ruff_cache", "migrations"]
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "B", "S", "UP"]
@@ -11,27 +12,23 @@ ignore = ["D100", "D104"]
 known-first-party = ["src"]
 
 [tool.ruff.lint.per-file-ignores]
-# FastAPI usa Depends() como default de argumento — comportamento esperado
 "src/api/routers/*.py" = ["B008"]
-# Testes podem usar assert, fixtures com magic values, etc.
 "tests/*.py" = ["S101", "S105", "S106"]
-
-[tool.ruff]
-exclude = [".venv", "__pycache__", ".pytest_cache", ".ruff_cache", "migrations"]
 
 [tool.bandit]
 exclude_dirs = [".venv", "tests", "migrations", "__pycache__"]
 targets = ["src"]
-skips = ["B101"]  # Ignora uso de assert (comum em testes)
+skips = ["B101"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
 testpaths = ["tests"]
 pythonpath = ["."]
-# Ignora avisos esperados de libs externas
 filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::pytest.PytestUnraisableExceptionWarning",
+    "ignore::sqlalchemy.exc.SAWarning",
 ]
 
 [tool.coverage.run]
