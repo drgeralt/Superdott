@@ -7,7 +7,7 @@ const AIChat = () => {
         {
             id: 'welcome',
             role: 'ai',
-            text: 'Olá, sou seu Assistente Pedagógico. Selecione um aluno na lista ao lado para iniciarmos uma análise baseada no banco de dados e nas diretrizes do MEC.',
+            text: 'Olá, Professor. Sou seu Assistente Pedagógico. Selecione um aluno na lista ao lado para iniciarmos uma análise baseada no banco de dados e nas diretrizes do MEC.',
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
     ]);
@@ -31,13 +31,27 @@ const AIChat = () => {
                 text: `Analisando perfil de <strong>${student.full_name}</strong>. Como posso ajudar com o plano de aula hoje?`,
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
-            setTimeout(() => setMessages(prev => [...prev, systemMsg]), 0);
+            // setTimeout resolve o erro de 'cascading render' apontado pelo ESLint
+            setTimeout(() => {
+                setMessages(prev => [...prev, systemMsg]);
+            }, 0);
         }
-    }, [student]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [student?.id]);
 
     const handleSend = async (e) => {
         e.preventDefault();
-        if (!inputValue.trim() || isStreaming || !student?.id) return;
+
+        // adicionada pela equipe de backend
+        if (!inputValue.trim() || isStreaming || !student?.id) {
+            console.error("Mensagem vazia ou aluno não selecionado");
+            return;
+        }
+
+        console.log("Payload sendo enviado:", {
+            message: inputValue,
+            student_id: student.id
+        });
 
         const userMsg = {
             id: Date.now(),
@@ -73,12 +87,12 @@ const AIChat = () => {
             };
             setMessages(prev => [...prev, aiMsg]);
 
-        } catch {
+        } catch { // Optional Catch Binding para silenciar o ESLint
             setMessages(prev => [...prev, {
                 id: Date.now() + 1,
                 role: 'ai',
-                text: 'Desculpe, tive um erro ao acessar a base de conhecimento. Verifique sua conexão e tente novamente mais tarde.',
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                text: 'Desculpe, professor. Tive um erro ao acessar a base de conhecimento. Verifique se o servidor está rodando.',
+                time: 'Erro'
             }]);
         } finally {
             setIsStreaming(false);
@@ -151,7 +165,7 @@ const AIChat = () => {
                     />
                     <button
                         type="submit"
-                        disabled={!inputValue.trim() || isStreaming}
+                        disabled={!inputValue.trim() || isStreaming || !student?.id}
                         className="absolute right-2 w-10 h-10 flex items-center justify-center bg-primary-navy text-white rounded-full shadow-lg hover:bg-teal-custom active:scale-90 transition-all disabled:opacity-50"
                     >
                         <span className="material-symbols-outlined">send</span>

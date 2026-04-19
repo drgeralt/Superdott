@@ -5,6 +5,7 @@ import './index.css';
 
 import Login from './Login.jsx';
 import Dashboard from './Dashboard.jsx';
+import Triage from './Triage.jsx';
 
 createRoot(document.getElementById('root')).render(
     <StrictMode>
@@ -12,6 +13,7 @@ createRoot(document.getElementById('root')).render(
             <Routes>
                 <Route path="/" element={<Login />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/triagem" element={<Triage />} />
             </Routes>
         </BrowserRouter>
     </StrictMode>

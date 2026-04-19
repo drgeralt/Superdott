@@ -1,5 +1,5 @@
-from src.rag.retriever import RetrievedChunk
 from src.rag.prompt import build_prompt
+from src.rag.retriever import RetrievedChunk
 
 chunks_falsos = [
     RetrievedChunk(

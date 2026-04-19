@@ -13,7 +13,7 @@ import logoImg from './assets/img/logo.png';
 import noUserPfp from './assets/img/no-user-pfp.jpg';
 
 const navItems = [
-    { label: 'Dashboard', href: '/' },
+    { label: 'Dashboard', href: '/dashboard' },
     { label: 'Triagem', href: '/triagem' },
     { label: 'Relatórios', href: '#' }
 ];
@@ -34,7 +34,7 @@ const Dashboard = () => {
                 <div className="pointer-events-auto flex items-center h-full">
                     <SplitText
                         text="Super Dashboard"
-                        className="md:text-xl lg:text-3xl font-black text-primary-navy font-headline tracking-tighter"
+                        className="md:text-2xl lg:text-5xl font-black text-primary-navy font-headline tracking-tighter"
                         delay={40}
                     />
                 </div>
@@ -42,7 +42,7 @@ const Dashboard = () => {
                     <PillNav
                         logo={logoImg}
                         items={navItems}
-                        activeHref="/"
+                        activeHref="/dashboard"
                         hoveredPillTextColor="#ffffff"
                     />
                 </div>

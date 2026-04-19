@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
+import { useLocation, Link } from 'react-router-dom';
 
 const PillNav = ({
                      logo,
@@ -26,7 +27,8 @@ const PillNav = ({
     const mobileMenuRef = useRef(null);
     const navItemsRef = useRef(null);
     const logoRef = useRef(null);
-
+    const location = useLocation();
+    const currentActive = activeHref || location.pathname;
     useEffect(() => {
         const layout = () => {
             circleRefs.current.forEach(circle => {
@@ -177,24 +179,24 @@ const PillNav = ({
     return (
         <div className="pill-nav-container relative z-50">
             <nav className={`pill-nav ${className}`} aria-label="Primary" style={cssVars}>
-                <a
+                <Link
                     className="pill-logo"
-                    href={items?.[0]?.href || '#'}
+                    to={items?.[0]?.href || '/'}
                     aria-label="Home"
                     onMouseEnter={handleLogoEnter}
                     ref={logoRef}
                 >
                     <img src={logo} alt={logoAlt} ref={logoImgRef} className="h-8" />
-                </a>
+                </Link>
 
                 <div className="pill-nav-items desktop-only" ref={navItemsRef}>
                     <ul className="pill-list" role="menubar">
                         {items.map((item, i) => (
                             <li key={item.href || `item-${i}`} role="none">
-                                <a
+                                <Link
                                     role="menuitem"
-                                    href={item.href}
-                                    className={`pill${activeHref === item.href ? ' is-active' : ''}`}
+                                    to={item.href}
+                                    className={`pill${currentActive === item.href ? ' is-active' : ''}`}
                                     aria-label={item.ariaLabel || item.label}
                                     onMouseEnter={() => handleEnter(i)}
                                     onMouseLeave={() => handleLeave(i)}
@@ -208,7 +210,7 @@ const PillNav = ({
                                         <span className="pill-label">{item.label}</span>
                                         <span className="pill-label-hover" aria-hidden="true">{item.label}</span>
                                     </span>
-                                </a>
+                                </Link>
                             </li>
                         ))}
                     </ul>
@@ -228,14 +230,14 @@ const PillNav = ({
                 <ul className="mobile-menu-list">
                     {items.map((item, i) => (
                         <li key={item.href || `mobile-item-${i}`}>
-                            <a
-                                href={item.href}
+                            <Link
+                                to={item.href}
                                 className={`mobile-menu-link${activeHref === item.href ? ' is-active' : ''}`}
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
                                 <span className="material-symbols-outlined text-sm mr-2">arrow_forward</span>
                                 {item.label}
-                            </a>
+                            </Link>
                         </li>
                     ))}
                     {/* Espaço para futuras opções extras */}

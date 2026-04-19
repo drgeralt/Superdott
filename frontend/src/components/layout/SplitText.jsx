@@ -31,7 +31,7 @@ const SplitText = ({
                     if (onLetterAnimationComplete) onLetterAnimationComplete();
                 }
             }
-        );
+        );// eslint-disable-next-line react-hooks/exhaustive-deps
     }, [text, delay, duration, ease, JSON.stringify(from), JSON.stringify(to)]);
 
     const characters = text.split('').map((char, index) => (
