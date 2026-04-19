@@ -96,7 +96,7 @@ async def submit_assessment(
     overall_score = round(sum(scores) / len(scores), 2) if scores else None
 
     token_obj.is_used = True
-    token_obj.used_at = datetime.now(UTC)
+    token_obj.used_at = datetime.now(UTC).replace(tzinfo=None)
     session.add(token_obj)
 
     await session.commit()
