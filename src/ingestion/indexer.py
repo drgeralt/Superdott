@@ -2,7 +2,6 @@ import asyncio
 import time
 from pathlib import Path
 
-from src.generated.prisma import Prisma  # Novo local do Prisma
 from src.ingestion.loader import load_documents
 from src.rag.embedder import embed_document
 
