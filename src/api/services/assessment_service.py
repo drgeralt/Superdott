@@ -34,6 +34,7 @@ class SubmitResponse(BaseModel):
 
 
 async def _fetch_valid_token(token_value: str, session: AsyncSession) -> Token:
+    """Busca o token no banco e valida se ele pode ser usado."""
     result = await session.exec(select(Token).where(Token.token == token_value))
     token_obj = result.first()
 
@@ -42,6 +43,7 @@ async def _fetch_valid_token(token_value: str, session: AsyncSession) -> Token:
     if token_obj.is_used:
         raise HTTPException(status_code=410, detail="Token já utilizado.")
     if token_obj.expires_at:
+        # Resolve o erro de DataError comparando datas conscientes
         expires = token_obj.expires_at.replace(tzinfo=UTC)
         if datetime.now(UTC) > expires:
             raise HTTPException(status_code=410, detail="Token expirado.")
@@ -52,6 +54,7 @@ async def _fetch_valid_token(token_value: str, session: AsyncSession) -> Token:
 async def get_assessment_context(
     token_value: str, session: AsyncSession
 ) -> AssessmentContextResponse:
+    """Recupera os dados do aluno e triagem baseados no token."""
     token_obj = await _fetch_valid_token(token_value, session)
 
     student = await session.get(Student, token_obj.student_id)
@@ -76,6 +79,7 @@ async def get_assessment_context(
 async def submit_assessment(
     token_value: str, answers: list[AnswerInput], session: AsyncSession
 ) -> SubmitResponse:
+    """Processa a submissão, salva as respostas e queima o token."""
     token_obj = await _fetch_valid_token(token_value, session)
 
     if not answers:
@@ -95,8 +99,9 @@ async def submit_assessment(
 
     overall_score = round(sum(scores) / len(scores), 2) if scores else None
 
+    # Resolve o conflito de naive vs aware datetime para o PostgreSQL
     token_obj.is_used = True
-    token_obj.used_at = datetime.now(UTC)
+    token_obj.used_at = datetime.now(UTC).replace(tzinfo=None)
     session.add(token_obj)
 
     await session.commit()

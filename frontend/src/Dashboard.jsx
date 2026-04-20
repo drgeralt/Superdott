@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import useStudentStore from './store/useStudentStore';
 
 import StudentList from './components/dashboard/StudentList';
 import TalentMap from './components/dashboard/TalentMap';
@@ -18,26 +19,14 @@ const navItems = [
 ];
 
 const Dashboard = () => {
-    const [students, setStudents] = useState([]);
-    const [selectedStudent, setSelectedStudent] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const fetchStudents = useStudentStore(state => state.fetchStudents);
+    const isLoading = useStudentStore(state => state.isLoading);
+    const error = useStudentStore(state => state.error);
+    const students = useStudentStore(state => state.students);
 
-    // BUSCA REAL DOS ALUNOS ATRAVÉS DO PROXY DO VITE
     useEffect(() => {
-        fetch('/api/students')
-            .then(res => res.json())
-            .then(data => {
-                setStudents(data);
-                if (data && data.length > 0) {
-                    setSelectedStudent(data[0]); // Seleciona o primeiro objeto da lista por padrão
-                }
-                setLoading(false);
-            })
-            .catch(err => {
-                console.error("Erro ao carregar alunos:", err);
-                setLoading(false);
-            });
-    }, []);
+        fetchStudents();
+    }, [fetchStudents]);
 
     return (
         <div className="min-h-screen bg-surface-container-lowest">
@@ -49,7 +38,6 @@ const Dashboard = () => {
                         delay={40}
                     />
                 </div>
-
                 <div className="pointer-events-auto flex items-center h-full">
                     <PillNav
                         logo={logoImg}
@@ -58,9 +46,7 @@ const Dashboard = () => {
                         hoveredPillTextColor="#ffffff"
                     />
                 </div>
-
                 <div className="pointer-events-auto flex justify-end items-center gap-4 h-full">
-                    {/* Settings e Profile... */}
                     <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-white shadow-sm cursor-pointer hover:scale-105 transition-transform">
                         <img alt="Perfil" className="w-full h-full object-cover" src={noUserPfp} />
                     </div>
@@ -71,11 +57,13 @@ const Dashboard = () => {
                 <header className="mb-8">
                     <div className="max-w-xl">
                         <p className="text-on-surface-variant mt-2 text-lg font-medium">
-                            {loading ? (
+                            {isLoading ? (
                                 <span className="flex items-center gap-2">
                                     <span className="w-4 h-4 border-2 border-primary-navy border-t-transparent rounded-full animate-spin"></span>
                                     Carregando dados pedagógicos...
                                 </span>
+                            ) : error ? (
+                                "Erro ao conectar com o servidor."
                             ) : (
                                 `Dashboard: Analisando ${students.length} alunos da turma.`
                             )}
@@ -83,23 +71,20 @@ const Dashboard = () => {
                     </div>
                 </header>
 
+                {error && (
+                    <div className="mb-6 p-4 bg-error-container text-on-surface rounded-xl flex items-center gap-3">
+                        <span className="material-symbols-outlined text-error">error</span>
+                        <p className="text-sm">{error}</p>
+                    </div>
+                )}
+
                 <div className="grid grid-cols-12 gap-6 items-start">
-                    {/* Lista de Alunos Lateral */}
-                    <StudentList
-                        students={students}
-                        activeId={selectedStudent?.id}
-                        onSelect={setSelectedStudent}
-                    />
-
-                    {/* Gráfico de Radar (Mapa de Talentos) */}
-                    <TalentMap student={selectedStudent} />
-
-                    {/* Chat de Assistente IA com contexto do aluno */}
-                    <AIChat student={selectedStudent} />
+                    <StudentList />
+                    <TalentMap />
+                    <AIChat />
                 </div>
             </main>
 
-            {/* Navegação Mobile mantida para consistência */}
             <MobileBottomNav />
         </div>
     );

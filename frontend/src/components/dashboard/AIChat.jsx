@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
+import useStudentStore from '../../store/useStudentStore';
 
-const AIChat = ({ student }) => {
+const AIChat = () => {
+    const student = useStudentStore(state => state.selectedStudent);
     const [messages, setMessages] = useState([
         {
             id: 'welcome',
@@ -19,9 +21,7 @@ const AIChat = ({ student }) => {
         }
     };
 
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
+    useEffect(() => { scrollToBottom(); }, [messages]);
 
     useEffect(() => {
         if (student) {
@@ -78,7 +78,6 @@ const AIChat = ({ student }) => {
             if (!response.ok) throw new Error('Falha na comunicação com o servidor');
 
             const data = await response.json();
-
             const aiMsg = {
                 id: Date.now() + 1,
                 role: 'ai',
@@ -86,7 +85,6 @@ const AIChat = ({ student }) => {
                 sources: data.sources,
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
-
             setMessages(prev => [...prev, aiMsg]);
 
         } catch { // Optional Catch Binding para silenciar o ESLint
@@ -103,7 +101,6 @@ const AIChat = ({ student }) => {
 
     return (
         <section className="col-span-12 md:col-span-5 flex flex-col bg-surface-container-low rounded-xl overflow-hidden shadow-sm border border-outline-variant/10 h-auto md:h-[calc(100vh-200px)] min-h-[500px]">
-            {/* Header Dinâmico */}
             <header className="px-6 py-4 bg-white/80 backdrop-blur-md flex justify-between items-center border-b border-outline-variant/10 shrink-0">
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary-navy to-teal-custom flex items-center justify-center text-white">
@@ -123,7 +120,6 @@ const AIChat = ({ student }) => {
                 </div>
             </header>
 
-            {/* Mensagens */}
             <div ref={chatContainerRef} className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6 scroll-smooth">
                 {messages.map((msg) => (
                     <div key={msg.id} className={`flex flex-col gap-2 max-w-[85%] ${msg.role === 'user' ? 'items-end ml-auto' : 'items-start'}`}>
@@ -131,9 +127,7 @@ const AIChat = ({ student }) => {
                             ? 'bg-primary-navy text-white rounded-tr-none'
                             : 'bg-white rounded-tl-none border border-outline-variant/10'
                         }`}>
-
                             <div dangerouslySetInnerHTML={{ __html: msg.text.replace(/\n/g, '<br/>') }} />
-
                             {msg.sources && msg.sources.length > 0 && (
                                 <div className="mt-4 pt-4 border-t border-slate-100">
                                     <p className="text-[10px] font-bold uppercase tracking-widest text-teal-custom mb-2">Referências Técnicas</p>
@@ -159,7 +153,6 @@ const AIChat = ({ student }) => {
                 )}
             </div>
 
-            {/* Input */}
             <footer className="p-4 bg-white border-t border-outline-variant/10 shrink-0">
                 <form onSubmit={handleSend} className="relative flex items-center">
                     <input
