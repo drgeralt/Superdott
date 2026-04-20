@@ -8,6 +8,7 @@ import io
 import pytest
 from httpx import AsyncClient
 from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.main import app
 from src.models.knowledge_base import KnowledgeBase
