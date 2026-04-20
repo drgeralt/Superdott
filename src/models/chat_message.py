@@ -12,4 +12,4 @@ class ChatMessage(SQLModel, table=True):
     role: str  # "user" ou "assistant"
 
     content: str
-    created_at: datetime | None = Field(default_factory=datetime.utcnow)
+    created_at: datetime | None = Field(default_factory=datetime.now)

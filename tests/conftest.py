@@ -1,12 +1,14 @@
 import os
 
+import asyncpg
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import text
+from sqlalchemy.engine.url import make_url
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
-from sqlalchemy import text
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -21,22 +23,51 @@ TEST_DATABASE_URL = (
 )
 
 
+async def ensure_test_database_exists(database_url: str) -> None:
+    url = make_url(database_url)
+    if not url.database or not url.drivername.startswith("postgresql"):
+        return
+
+    admin_db = "postgres"
+    try:
+        conn = await asyncpg.connect(
+            user=url.username,
+            password=url.password,
+            database=admin_db,
+            host=url.host or "localhost",
+            port=url.port or 5432,
+        )
+    except Exception:
+        # If the admin connection fails, let the test framework raise the correct error.
+        raise
+
+    try:
+        try:
+            await conn.execute(f'CREATE DATABASE "{url.database}"')
+        except asyncpg.DuplicateDatabaseError:
+            pass
+    finally:
+        await conn.close()
+
+
 @pytest_asyncio.fixture(autouse=True, scope="session")
 async def setup_test_database():
     """Cria as tabelas antes dos testes e apaga depois."""
     import src.models  # noqa: F401
 
+    await ensure_test_database_exists(TEST_DATABASE_URL)
+
     engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
     async with engine.begin() as conn:
         # --> A LINHA MÁGICA QUE SALVA O CI ESTÁ AQUI:
         await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
-        
+
         await conn.run_sync(SQLModel.metadata.create_all)
-    
+
     await engine.dispose()
-    
+
     yield
-    
+
     engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.drop_all)
@@ -84,4 +115,12 @@ async def async_client() -> AsyncClient:
     ) as client:
         yield client
 
-    app.dependency_overrides.clear()
+
+@pytest.fixture
+async def db_session() -> AsyncSession:
+    """Fixture que fornece uma sessão de banco de dados para testes."""
+    engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
+    factory = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    async with factory() as session:
+        yield session
+    await engine.dispose()
