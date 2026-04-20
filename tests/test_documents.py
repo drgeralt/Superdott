@@ -4,6 +4,7 @@ Verifica upload de PDF, extração, chunking, embedding e persistência.
 """
 
 import io
+from unittest.mock import MagicMock, patch
 
 import pytest
 from httpx import AsyncClient
@@ -28,11 +29,9 @@ MINIMAL_PDF = (
 def mock_gemini_client():
     """Mock do cliente Gemini para evitar chamadas reais à API."""
     with patch("src.api.services.ingestion_service.client") as mock_client:
-        # Cria um mock da resposta de embedding
+        # Cria um mock da resposta de embedding com um vetor de float real
         mock_response = MagicMock()
-        mock_embedding = MagicMock()
-        mock_embedding.embeddings = [0.1] * 3072  # Vetor de 3072 dimensões
-        mock_response.embeddings = mock_embedding
+        mock_response.embeddings = [0.1] * 3072  # Vetor de 3072 dimensões
 
         # Configura o mock para retornar a resposta quando embed_content for chamado
         mock_client.models.embed_content.return_value = mock_response

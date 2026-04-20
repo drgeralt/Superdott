@@ -1,9 +1,11 @@
 import os
 
+import asyncpg
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
+from sqlalchemy.engine.url import make_url
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
@@ -21,10 +23,39 @@ TEST_DATABASE_URL = (
 )
 
 
+async def ensure_test_database_exists(database_url: str) -> None:
+    url = make_url(database_url)
+    if not url.database or not url.drivername.startswith("postgresql"):
+        return
+
+    admin_db = "postgres"
+    try:
+        conn = await asyncpg.connect(
+            user=url.username,
+            password=url.password,
+            database=admin_db,
+            host=url.host or "localhost",
+            port=url.port or 5432,
+        )
+    except Exception:
+        # If the admin connection fails, let the test framework raise the correct error.
+        raise
+
+    try:
+        try:
+            await conn.execute(f'CREATE DATABASE "{url.database}"')
+        except asyncpg.DuplicateDatabaseError:
+            pass
+    finally:
+        await conn.close()
+
+
 @pytest_asyncio.fixture(autouse=True, scope="session")
 async def setup_test_database():
     """Cria as tabelas antes dos testes e apaga depois."""
     import src.models  # noqa: F401
+
+    await ensure_test_database_exists(TEST_DATABASE_URL)
 
     engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
     async with engine.begin() as conn:

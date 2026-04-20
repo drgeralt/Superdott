@@ -57,6 +57,8 @@ async def upload_document(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erro ao processar o documento no motor de inteligência artificial.",
         ) from re
+    except HTTPException:
+        raise
     except Exception as exc:
         logger.exception(f"Erro inesperado no upload de {file.filename}")
         raise HTTPException(

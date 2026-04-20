@@ -45,15 +45,16 @@ class IngestionService:
                 )
 
                 def extract_floats(obj):
-                    if hasattr(obj, "values"):
-                        yield from extract_floats(obj.values)
+                    if isinstance(obj, dict):
+                        for value in obj.values():
+                            yield from extract_floats(value)
                     elif isinstance(obj, list):
                         for item in obj:
                             yield from extract_floats(item)
                     elif isinstance(obj, (float, int)):
                         yield float(obj)
 
-                # Achata qualquer estrutura que a SDK retornar
+                # Achata qualquer estrutura de dados que a SDK retornar
                 embedding_vector = list(extract_floats(response.embeddings))
 
                 # Trava de segurança para garantir o tamanho antes de bater no banco

@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import datetime
 from uuid import UUID, uuid4
 
 from sqlmodel import Field, SQLModel
@@ -12,4 +12,4 @@ class ChatMessage(SQLModel, table=True):
     role: str  # "user" ou "assistant"
 
     content: str
-    created_at: datetime | None = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime | None = Field(default_factory=datetime.now)
