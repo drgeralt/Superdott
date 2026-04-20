@@ -10,7 +10,6 @@ from httpx import AsyncClient
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.main import app
 from src.models.knowledge_base import KnowledgeBase
 
 # PDF de teste minimalista (PDF válido com texto)
@@ -25,8 +24,24 @@ MINIMAL_PDF = (
 )
 
 
+@pytest.fixture
+def mock_gemini_client():
+    """Mock do cliente Gemini para evitar chamadas reais à API."""
+    with patch("src.api.services.ingestion_service.client") as mock_client:
+        # Cria um mock da resposta de embedding
+        mock_response = MagicMock()
+        mock_embedding = MagicMock()
+        mock_embedding.embeddings = [0.1] * 3072  # Vetor de 3072 dimensões
+        mock_response.embeddings = mock_embedding
+
+        # Configura o mock para retornar a resposta quando embed_content for chamado
+        mock_client.models.embed_content.return_value = mock_response
+
+        yield mock_client
+
+
 @pytest.mark.asyncio
-async def test_upload_pdf_success(async_client: AsyncClient):
+async def test_upload_pdf_success(async_client: AsyncClient, mock_gemini_client):
     """Testa upload de PDF válido com status 200."""
     response = await async_client.post(
         "/api/documents/upload",
@@ -59,19 +74,18 @@ async def test_upload_file_too_large(async_client: AsyncClient):
     """Testa rejeição de arquivo maior que 10MB."""
     large_file = b"X" * (11 * 1024 * 1024)  # 11MB
 
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        response = await client.post(
-            "/api/documents/upload",
-            files={"file": ("large.pdf", io.BytesIO(large_file), "application/pdf")},
-        )
+    response = await async_client.post(
+        "/api/documents/upload",
+        files={"file": ("large.pdf", io.BytesIO(large_file), "application/pdf")},
+    )
 
-        assert response.status_code == 413
-        assert "10MB" in response.json()["detail"]
+    assert response.status_code == 413
+    assert "10MB" in response.json()["detail"]
 
 
 @pytest.mark.asyncio
 async def test_knowledge_base_populated_after_upload(
-    async_client: AsyncClient, db_session: AsyncSession
+    async_client: AsyncClient, db_session: AsyncSession, mock_gemini_client
 ):
     """Testa se chunks foram persistidos na tabela knowledge_base após upload."""
     response = await async_client.post(
