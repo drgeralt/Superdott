@@ -3,10 +3,10 @@ import os
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
-from sqlalchemy import text
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -30,13 +30,13 @@ async def setup_test_database():
     async with engine.begin() as conn:
         # --> A LINHA MÁGICA QUE SALVA O CI ESTÁ AQUI:
         await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
-        
+
         await conn.run_sync(SQLModel.metadata.create_all)
-    
+
     await engine.dispose()
-    
+
     yield
-    
+
     engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.drop_all)
@@ -88,6 +88,8 @@ async def async_client() -> AsyncClient:
 @pytest.fixture
 async def db_session() -> AsyncSession:
     """Fixture que fornece uma sessão de banco de dados para testes."""
-    async with AsyncSession() as session:
+    engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
+    factory = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    async with factory() as session:
         yield session
-    app.dependency_overrides.clear()
+    await engine.dispose()
