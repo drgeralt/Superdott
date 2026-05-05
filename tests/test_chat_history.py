@@ -8,7 +8,7 @@ from src.models.chat_message import ChatMessage
 from src.models.chat_session import ChatSession
 
 
-# ====================== FIXTURES ======================
+# ====================== FIXTURES =====================
 
 @pytest.fixture
 def mock_chat_dependencies():
