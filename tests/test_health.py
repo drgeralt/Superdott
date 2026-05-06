@@ -14,22 +14,12 @@ from httpx import AsyncClient
 
 
 @pytest.mark.asyncio
-async def test_health_retorna_200(async_client: AsyncClient):
-    """GET /health deve retornar HTTP 200."""
+async def test_health_check(async_client: AsyncClient):
+    """
+    GET /health deve retornar HTTP 200, Content-Type correto e payload {"status": "ok"}.
+    """
     response = await async_client.get("/health")
+
     assert response.status_code == 200
-
-
-@pytest.mark.asyncio
-async def test_health_retorna_status_ok(async_client: AsyncClient):
-    """GET /health deve retornar o JSON {"status": "ok"}."""
-    response = await async_client.get("/health")
-    data = response.json()
-    assert data["status"] == "ok"
-
-
-@pytest.mark.asyncio
-async def test_health_content_type_json(async_client: AsyncClient):
-    """GET /health deve retornar Content-Type application/json."""
-    response = await async_client.get("/health")
     assert "application/json" in response.headers["content-type"]
+    assert response.json() == {"status": "ok"}
