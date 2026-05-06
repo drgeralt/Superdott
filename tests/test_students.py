@@ -57,8 +57,7 @@ async def test_get_students_retorna_200(async_client: AsyncClient):
 async def test_get_students_retorna_lista(async_client: AsyncClient):
     """GET /api/students deve retornar uma lista (mesmo que vazia)."""
     response = await async_client.get("/api/students")
-    data = response.json()
-    assert isinstance(data, list)
+    assert isinstance(response.json(), list)
 
 
 @pytest.mark.asyncio
