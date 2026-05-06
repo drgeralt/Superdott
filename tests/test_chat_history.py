@@ -1,6 +1,8 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
+from click import prompt
+
 import pytest
 from httpx import AsyncClient
 
@@ -37,7 +39,9 @@ async def test_chat_grava_user_e_assistant_na_mesma_sessao(async_client: AsyncCl
             "src.api.routers.chat.ask",
             new=AsyncMock(return_value=fake_rag),
         ),
-        patch("src.api.routers.chat.AsyncSession.add") as mock_add,
+        patch(
+            "src.api.routers.chat.AsyncSession.add"
+        ) as mock_add,
         patch(
             "src.api.routers.chat.AsyncSession.commit",
             new=AsyncMock(),
@@ -69,10 +73,7 @@ async def test_history_injetado_no_prompt():
 
     history = [
         {"role": "user", "content": "Quais são os pontos fortes dela?"},
-        {
-            "role": "assistant",
-            "content": "Os pontos fortes são liderança e criatividade.",
-        },
+        {"role": "assistant", "content": "Os pontos fortes são liderança e criatividade."},
     ]
     prompt = build_prompt(
         question="E como usar isso em matemática?",
