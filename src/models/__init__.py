@@ -6,6 +6,7 @@ from src.models.knowledge_base import KnowledgeBase
 from src.models.school import School
 from src.models.student import Student
 from src.models.token import Token
+from src.models.student_link_code import StudentLinkCode
 
 __all__ = [
     "Answer",
@@ -16,4 +17,5 @@ __all__ = [
     "School",
     "Student",
     "Token",
+    "StudentLinkCode",
 ]
