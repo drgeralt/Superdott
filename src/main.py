@@ -3,7 +3,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.routers import assessment, chat, documents, students, system
+from src.api.routers import assessment, chat, documents, students, system, audit
 from src.core.config import settings
 
 logging.basicConfig(level=logging.INFO)
@@ -22,6 +22,7 @@ app.include_router(system.router)
 app.include_router(students.router)
 app.include_router(chat.router)
 app.include_router(assessment.router, prefix="/api")
+app.include_router(audit.router)
 
 app.include_router(documents.router)
 
