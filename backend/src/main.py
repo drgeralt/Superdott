@@ -18,6 +18,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Servindo o Frontend estático (Será removido na Task 1 - Vite)
+app.mount("/app", StaticFiles(directory="frontend"), name="frontend")
+
+# Registro das rotas
 app.include_router(system.router)
 app.include_router(students.router)
 app.include_router(chat.router)
