@@ -1,11 +1,4 @@
 {
-<<<<<<< HEAD
-  "dependencies": {
-    "three": "^0.183.2"
-  },
-  "devDependencies": {
-    "vite": "^8.0.13"
-=======
   "name": "frontend",
   "version": "1.0.0",
   "description": "",
@@ -42,6 +35,5 @@
     "postcss": "^8.5.10",
     "tailwindcss": "^4.2.2",
     "vite": "^8.0.8"
->>>>>>> origin/develop
   }
 }

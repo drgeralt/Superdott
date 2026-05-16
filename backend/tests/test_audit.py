@@ -2,7 +2,6 @@
 Testa que as ações de vínculo/desvínculo registram entradas na tabela audit_logs.
 """
 import uuid
-
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -54,10 +53,6 @@ async def test_link_gera_audit_log(async_client: AsyncClient, audit_student_id: 
     response = await async_client.post(f"/api/students/{audit_student_id}/link")
     assert response.status_code == 200
 
-    # Aguarda o BackgroundTask completar
-    import asyncio
-    await asyncio.sleep(0.2)
-
     async with AsyncSession(test_engine) as session:
         result = await session.exec(
             select(AuditLog).where(
@@ -77,9 +72,6 @@ async def test_unlink_gera_audit_log(async_client: AsyncClient, audit_student_id
     """DELETE /{student_id}/link deve inserir registro STUDENT_UNLINKED na audit_logs."""
     response = await async_client.delete(f"/api/students/{audit_student_id}/link")
     assert response.status_code == 200
-
-    import asyncio
-    await asyncio.sleep(0.2)
 
     async with AsyncSession(test_engine) as session:
         result = await session.exec(

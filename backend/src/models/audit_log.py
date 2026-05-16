@@ -28,7 +28,8 @@ class AuditLog(SQLModel, table=True):
         default=None, sa_column=Column(JSON)
     )
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
-        nullable=False,
-        index=True,
+    default_factory=lambda: datetime.utcnow(),
+    nullable=False,
+    index=True,
     )
+
