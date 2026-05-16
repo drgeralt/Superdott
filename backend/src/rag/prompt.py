@@ -39,9 +39,7 @@ def build_prompt(
     if chunks:
         parts.append("\n\nCONTEXTO RECUPERADO:")
         for i, chunk in enumerate(chunks, start=1):
-            parts.append(
-                f"\n[Trecho {i} | Fonte: {chunk.source}]\n{chunk.content}"
-            )
+            parts.append(f"\n[Trecho {i} | Fonte: {chunk.source}]\n{chunk.content}")
     else:
         parts.append(
             "\n\n[Nenhum trecho relevante encontrado na base de conhecimento.]"

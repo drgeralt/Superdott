@@ -2,77 +2,32 @@ import asyncio
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import pool, text
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy import pool
+from sqlalchemy.ext.asyncio import async_engine_from_config
 from sqlmodel import SQLModel
 
-# 1. Importações (O linter não vai mexer aqui porque vamos usá-las)
-from src.core.config import settings as app_settings
-from src.models import ChatMessage, ChatSession
-from src.models.answer import Answer
-from src.models.assessment import Assessment
-from src.models.knowledge_base import KnowledgeBase
-from src.models.school import School
-from src.models.student import Student
-from src.models.token import Token
-
-# Forçamos o uso para o linter e para garantir o registro no Metadata
-_all_models = [
-    School,
-    Student,
-    Assessment,
-    Answer,
-    KnowledgeBase,
-    Token,
-    ChatSession,
-    ChatMessage,
-]
+from src.core.config import settings
 
 config = context.config
+
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Vinculamos o Metadata do SQLModel
 target_metadata = SQLModel.metadata
 
 
-def do_run_migrations(connection):
-    # 1. Configuramos o contexto
-    context.configure(
-        connection=connection,
-        target_metadata=target_metadata,
-        compare_type=True,
-    )
-
-    # 2. Rodamos as migrações (O Alembic gerencia a transação interna dele aqui)
-    with context.begin_transaction():
-        context.run_migrations()
-
-
-async def run_async_migrations() -> None:
-    url = app_settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
-
-    connectable = create_async_engine(url, poolclass=pool.NullPool)
-
-    # USAMOS .connect() para poder rodar a extensão fora de uma transação se necessário
-    async with connectable.connect() as connection:
-        # A. Garantir a extensão vector
-        await connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
-        await connection.commit()
-
-        # B. Rodar as migrações dentro de uma transação explícita que faz COMMIT
-        await connection.run_sync(do_run_migrations)
-        await connection.commit()  # <--- O SEGREDO ESTÁ AQUI
-
-    await connectable.dispose()
-
-
-def run_migrations_online() -> None:
-    asyncio.run(run_async_migrations())
+def get_async_url():
+    """Garante que a URL utilize o driver asyncpg"""
+    url = str(settings.DATABASE_URL)
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+    elif url.startswith("postgresql://"):
+        url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    return url
 
 
 def run_migrations_offline() -> None:
-    url = app_settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
+    url = get_async_url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -83,7 +38,27 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
+def do_run_migrations(connection):
+    context.configure(connection=connection, target_metadata=target_metadata)
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+async def run_migrations_online() -> None:
+    configuration = config.get_section(config.config_ini_section)
+    configuration["sqlalchemy.url"] = get_async_url()
+
+    connectable = async_engine_from_config(
+        configuration,
+        prefix="sqlalchemy.",
+        poolclass=pool.NullPool,
+    )
+    async with connectable.connect() as connection:
+        await connection.run_sync(do_run_migrations)
+    await connectable.dispose()
+
+
 if context.is_offline_mode():
     run_migrations_offline()
 else:
-    run_migrations_online()
+    asyncio.run(run_migrations_online())

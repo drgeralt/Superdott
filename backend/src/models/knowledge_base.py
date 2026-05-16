@@ -13,9 +13,9 @@ class KnowledgeBase(SQLModel, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     content: str
-    # Vector(3072) definido no sa_column
+
     embedding: Any | None = Field(sa_column=Column(Vector(3072)))
     metadata_: Any | None = Field(default=None, sa_column=Column("metadata", JSON))
     source: str | None = None
     chunk_index: int | None = None
-    created_at: datetime | None = Field(default_factory=datetime.utcnow)
+    created_at: datetime | None = Field(default_factory=datetime.now)

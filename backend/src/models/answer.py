@@ -13,4 +13,4 @@ class Answer(SQLModel, table=True):
     assessment_id: UUID | None = Field(default=None, foreign_key="assessments.id")
     content_text: str
     score: Decimal | None = Field(default=None, max_digits=5, decimal_places=2)
-    created_at: datetime | None = Field(default_factory=datetime.utcnow)
+    created_at: datetime | None = Field(default_factory=datetime.now)

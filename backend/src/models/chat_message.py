@@ -13,4 +13,3 @@ class ChatMessage(SQLModel, table=True):
 
     content: str
     created_at: datetime | None = Field(default_factory=datetime.utcnow)
-    

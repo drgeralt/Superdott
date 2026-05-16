@@ -1,13 +1,14 @@
-const { useEffect, useRef } = React;
+import { useEffect, useRef } from 'react';
+import gsap from 'gsap';
 
 const CountUp = ({
-    to,
-    from = 0,
-    duration = 2,
-    delay = 0,
-    separator = '',
-    className = ''
-}) => {
+                     to,
+                     from = 0,
+                     duration = 2,
+                     delay = 0,
+                     separator = '',
+                     className = ''
+                 }) => {
     const ref = useRef(null);
 
     useEffect(() => {
@@ -36,3 +37,5 @@ const CountUp = ({
 
     return <span className={className} ref={ref} />;
 };
+
+export default CountUp;
