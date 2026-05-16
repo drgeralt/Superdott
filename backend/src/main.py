@@ -22,7 +22,7 @@ app.add_middleware(
 )
 
 # Servindo o Frontend estático (Será removido na Task 1 - Vite)
-app.mount("/app", StaticFiles(directory="frontend"), name="frontend")
+# app.mount("/app", StaticFiles(directory="frontend"), name="frontend")
 
 # Registro das rotas
 app.include_router(system.router)
