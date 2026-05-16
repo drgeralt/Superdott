@@ -7,6 +7,15 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from sqlmodel import SQLModel
 
 from src.core.config import settings
+from src.models.answer import Answer
+from src.models.assessment import Assessment
+from src.models.audit_log import AuditLog, AuditAction
+from src.models.chat_message import ChatMessage
+from src.models.chat_session import ChatSession
+from src.models.knowledge_base import KnowledgeBase
+from src.models.school import School
+from src.models.student import Student
+from src.models.token import Token
 
 config = context.config
 

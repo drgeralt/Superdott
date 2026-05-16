@@ -6,6 +6,7 @@ from src.models.knowledge_base import KnowledgeBase
 from src.models.school import School
 from src.models.student import Student
 from src.models.token import Token
+from src.models.audit_log import AuditLog, AuditAction 
 
 __all__ = [
     "Answer",
@@ -16,4 +17,6 @@ __all__ = [
     "School",
     "Student",
     "Token",
+    "AuditLog",
+    "AuditAction",
 ]
