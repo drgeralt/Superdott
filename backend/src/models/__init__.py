@@ -9,6 +9,7 @@ from src.models.token import Token
 from src.models.audit_log import AuditLog, AuditAction 
 from src.models.user import User, UserRole
 from src.models.links import SchoolStudentLink, ParentStudentLink
+from src.models.student_link_code import StudentLinkCode
 
 __all__ = [
     "Answer",
@@ -25,4 +26,5 @@ __all__ = [
     "UserRole",
     "SchoolStudentLink",
     "ParentStudentLink",
+    "StudentLinkCode",
 ]
