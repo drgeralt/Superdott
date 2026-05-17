@@ -120,3 +120,92 @@ async def test_register_success(async_client: AsyncClient):
     data = response.json()
     assert "id" in data
     assert data["message"] == "Usuário criado com sucesso"
+
+
+@pytest.mark.asyncio
+async def test_register_with_student_success(async_client: AsyncClient, db_session: AsyncSession):
+    app.dependency_overrides.pop(get_current_user, None)
+    
+    import uuid
+    email = f"parent_{uuid.uuid4().hex[:6]}@test.com"
+    student_email = f"student_{uuid.uuid4().hex[:6]}@student.com"
+
+    response = await async_client.post(
+        "/api/auth/register",
+        json={
+            "email": email,
+            "password": "password123",
+            "accepted_tcle": True,
+            "role": "Pai",
+            "student": {
+                "full_name": "Enzo Silva",
+                "email": student_email
+            }
+        }
+    )
+    assert response.status_code == 201
+    
+    # Valida no banco de dados se o pai, o aluno e o link foram criados
+    from src.models.user import User
+    from src.models.student import Student
+    from src.models.links import ParentStudentLink
+
+    result_user = await db_session.exec(select(User).where(User.email == email))
+    user = result_user.first()
+    assert user is not None
+    assert user.role == UserRole.Pai
+
+    result_student = await db_session.exec(select(Student).where(Student.email == student_email))
+    student = result_student.first()
+    assert student is not None
+    assert student.full_name == "Enzo Silva"
+
+    result_link = await db_session.exec(
+        select(ParentStudentLink).where(
+            ParentStudentLink.parent_id == user.id,
+            ParentStudentLink.student_id == student.id
+        )
+    )
+    link = result_link.first()
+    assert link is not None
+
+
+@pytest.mark.asyncio
+async def test_register_composite_rollback_on_failure(async_client: AsyncClient, db_session: AsyncSession):
+    app.dependency_overrides.pop(get_current_user, None)
+
+    import uuid
+    email = f"parent_{uuid.uuid4().hex[:6]}@test.com"
+    
+    # Criamos um aluno de teste primeiro para causar conflito de e-mail duplicado
+    from src.models.student import Student
+    from src.models.user import User
+    
+    student_email = f"duplicated_{uuid.uuid4().hex[:6]}@student.com"
+    existing_student = Student(full_name="Already Exists", email=student_email)
+    db_session.add(existing_student)
+    await db_session.commit()
+
+    # Tentativa de cadastro composto com e-mail de aluno duplicado
+    response = await async_client.post(
+        "/api/auth/register",
+        json={
+            "email": email,
+            "password": "password123",
+            "accepted_tcle": True,
+            "role": "Pai",
+            "student": {
+                "full_name": "Enzo Conflito",
+                "email": student_email # email duplicado vai estourar erro
+            }
+        }
+    )
+    # Deve falhar com 400 Bad Request ou similar
+    assert response.status_code == 400
+    assert "E-mail de aluno já cadastrado" in response.json()["detail"]
+
+    # Valida que o usuário pai NÃO foi criado devido ao Rollback transacional
+    result_user = await db_session.exec(select(User).where(User.email == email))
+    user = result_user.first()
+    assert user is None
+

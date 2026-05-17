@@ -65,9 +65,15 @@ const AIChat = () => {
         setIsStreaming(true);
 
         try {
+            const token = localStorage.getItem('superdott_token');
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             const response = await fetch('/api/chat', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: headers,
                 body: JSON.stringify({
                     message: inputValue,
                     student_id: student?.id,

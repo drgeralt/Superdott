@@ -60,7 +60,8 @@ const TalentMap = () => {
         });
 
         return () => { if (chartInstance.current) chartInstance.current.destroy(); };
-    }, [data]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedStudent?.score_intelectual, selectedStudent?.score_criatividade, selectedStudent?.score_lideranca]);
 
     if (isLoading) {
         return (
