@@ -7,6 +7,7 @@ from src.models.school import School
 from src.models.student import Student
 from src.models.token import Token
 from src.models.audit_log import AuditLog, AuditAction 
+from src.models.user import User, UserRole
 
 __all__ = [
     "Answer",
@@ -19,4 +20,6 @@ __all__ = [
     "Token",
     "AuditLog",
     "AuditAction",
+    "User",
+    "UserRole",
 ]

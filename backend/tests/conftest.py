@@ -100,6 +100,8 @@ async def async_client() -> AsyncClient:
     Isso evita o erro 'another operation is in progress' do asyncpg.
     """
     from src.core.database import get_session
+    from src.api.deps import get_current_user
+    from src.models.user import User, UserRole
 
     async def override_get_session():
         engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
@@ -108,7 +110,11 @@ async def async_client() -> AsyncClient:
             yield session
         await engine.dispose()
 
+    async def override_get_current_user():
+        return User(id=1, email="test@test.com", hashed_password="hashed", role=UserRole.SuperAdmin, is_active=True)
+
     app.dependency_overrides[get_session] = override_get_session
+    app.dependency_overrides[get_current_user] = override_get_current_user
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"

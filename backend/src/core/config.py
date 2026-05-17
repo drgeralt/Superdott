@@ -7,6 +7,8 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str
     SENTRY_DSN: str | None = None
     ENV: str = "development"
+    SECRET_KEY: str = "superdott-unsafe-dev-secret-key"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 120
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

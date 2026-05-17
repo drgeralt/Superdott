@@ -18,12 +18,20 @@ app.add_middleware(
 )
 
 # Registro das rotas
-app.include_router(system.router)
-app.include_router(students.router)
-app.include_router(chat.router)
+from src.api.routers import auth
+from src.api.deps import get_current_user
+from fastapi import Depends
+
+app.include_router(auth.router)
+
+protected = [Depends(get_current_user)]
+
+app.include_router(system.router, dependencies=protected)
+app.include_router(students.router, dependencies=protected)
+app.include_router(chat.router, dependencies=protected)
 app.include_router(assessment.router, prefix="/api")
-app.include_router(audit.router)
-app.include_router(documents.router)
+app.include_router(audit.router, dependencies=protected)
+app.include_router(documents.router, dependencies=protected)
 
 if not settings.GEMINI_API_KEY or settings.GEMINI_API_KEY == "sua_chave_aqui":
     logger.error("Chave do Gemini não encontrada ou padrão!")
