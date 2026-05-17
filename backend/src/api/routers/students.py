@@ -59,32 +59,39 @@ async def link_student(
     return {"ok": True}
 
 
-@router.delete("/{student_id}/link", status_code=status.HTTP_200_OK)
+@router.delete("/{student_id}/unlink", status_code=status.HTTP_200_OK)
 async def unlink_student(
     student_id: uuid.UUID,
+    school_id: uuid.UUID, 
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    result = await session.exec(select(Student).where(Student.id == student_id))
-    if not result.first():
+    student = await session.get(Student, student_id)
+    if not student:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Aluno não encontrado.")
 
     if current_user.role == UserRole.Pai:
-        existing = await session.exec(select(ParentStudentLink).where(
-            ParentStudentLink.parent_id == current_user.id,
-            ParentStudentLink.student_id == student_id
-        ))
-        link = existing.first()
-        if link:
-            await session.delete(link)
-    else:
-        # Simplificação para Escola desvinculando (remove todos os SchoolStudentLink)
-        existing = await session.exec(select(SchoolStudentLink).where(
-            SchoolStudentLink.student_id == student_id
-        ))
-        for link in existing.all():
-            await session.delete(link)
+        parent_link = await session.exec(
+            select(ParentStudentLink).where(
+                ParentStudentLink.parent_id == current_user.id,
+                ParentStudentLink.student_id == student_id
+            )
+        )
+        if not parent_link.first():
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acesso negado a este aluno.")
 
+    school_link = await session.exec(
+        select(SchoolStudentLink).where(
+            SchoolStudentLink.student_id == student_id,
+            SchoolStudentLink.school_id == school_id
+        )
+    )
+    link = school_link.first()
+
+    if not link:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vínculo com a instituição não existe.")
+
+    await session.delete(link)
     await session.commit()
 
     await create_audit_log(
@@ -92,6 +99,7 @@ async def unlink_student(
         user_id=uuid.UUID(int=current_user.id),
         action=AuditAction.STUDENT_UNLINKED,
         student_id=student_id,
+        details={"school_id": str(school_id)}
     )
 
-    return {"ok": True}
+    return {"message": "Desvinculação realizada com segurança."}
