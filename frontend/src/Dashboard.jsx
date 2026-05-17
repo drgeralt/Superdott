@@ -6,18 +6,7 @@ import DirectorDashboard from './components/dashboard/DirectorDashboard';
 import TeacherDashboard from './components/dashboard/TeacherDashboard';
 import ParentDashboard from './components/dashboard/ParentDashboard';
 
-import PillNav from './components/layout/PillNav';
-import MobileBottomNav from './components/layout/MobileBottomNav';
-import SplitText from './components/layout/SplitText';
-
-import logoImg from './assets/img/logo.png';
-import noUserPfp from './assets/img/no-user-pfp.jpg';
-
-const navItems = [
-    { label: 'Dashboard', href: '/dashboard' },
-    { label: 'Triagem', href: '/triagem' },
-    { label: 'Relatórios', href: '#' }
-];
+import MainLayout from './components/layout/MainLayout';
 
 const Dashboard = () => {
     const [summaryData, setSummaryData] = useState(null);
@@ -100,36 +89,9 @@ const Dashboard = () => {
     };
 
     return (
-        <div className="min-h-screen bg-surface-container-lowest">
-            <header className="absolute top-0 left-0 w-full px-6 z-50 grid grid-cols-[1fr_auto_1fr] items-center h-20 pointer-events-none">
-                <div className="pointer-events-auto flex items-center h-full">
-                    <SplitText
-                        text="Super Dashboard"
-                        className="md:text-2xl lg:text-5xl font-black text-primary-navy font-headline tracking-tighter"
-                        delay={40}
-                    />
-                </div>
-                <div className="pointer-events-auto flex items-center h-full">
-                    <PillNav
-                        logo={logoImg}
-                        items={navItems}
-                        activeHref="/dashboard"
-                        hoveredPillTextColor="#ffffff"
-                    />
-                </div>
-                <div className="pointer-events-auto flex justify-end items-center gap-4 h-full">
-                    <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-white shadow-sm cursor-pointer hover:scale-105 transition-transform">
-                        <img alt="Perfil" className="w-full h-full object-cover" src={noUserPfp} />
-                    </div>
-                </div>
-            </header>
-
-            <main className="pt-24 pb-24 lg:pb-8 px-6 min-h-screen">
-                {renderDashboardContent()}
-            </main>
-
-            <MobileBottomNav />
-        </div>
+        <MainLayout>
+            {renderDashboardContent()}
+        </MainLayout>
     );
 };
 
