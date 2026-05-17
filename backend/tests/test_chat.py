@@ -27,34 +27,6 @@ class FakeRAGResponse:
     sources = ["manual_mec.pdf"]
 
 
-@pytest.fixture()
-async def chat_student_id():
-    """Cria um aluno isolado no banco e limpa após o teste."""
-    student_id = str(uuid.uuid4())
-    async with AsyncSession(test_engine) as session:
-        await session.exec(
-            text("INSERT INTO students (id, full_name, email) VALUES (:id, :name, :email)"),
-            params={
-                "id": student_id,
-                "name": "Aluno Chat Teste",
-                "email": f"chat_{student_id[:8]}@escola.com",
-            },
-        )
-        await session.commit()
-
-    yield student_id
-
-    # Limpeza (Teardown)
-    async with AsyncSession(test_engine) as session:
-        try:
-            # Tenta apagar o aluno. Se o chat salvou histórico vinculado a ele, 
-            # o banco impedirá a exclusão (Foreign Key). O except ignora a falha pro teste não quebrar.
-            await session.exec(text("DELETE FROM students WHERE id = :id"), params={"id": student_id})
-            await session.commit()
-        except Exception:
-            pass
-
-
 @pytest.mark.asyncio
 async def test_chat_retorna_200_com_mock(async_client: AsyncClient, chat_student_id: str):
     """POST /api/chat deve retornar HTTP 200 com Gemini mockado."""

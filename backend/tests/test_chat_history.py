@@ -11,14 +11,14 @@ from src.models.chat_session import ChatSession
 
 
 @pytest.mark.asyncio
-async def test_chat_grava_user_e_assistant_na_mesma_sessao(async_client: AsyncClient):
+async def test_chat_grava_user_e_assistant_na_mesma_sessao(async_client: AsyncClient, chat_student_id: str):
     """
     Simula um POST /api/chat e verifica que:
     1. Uma ChatSession é criada para o aluno
     2. Uma ChatMessage role=user é gravada antes da IA responder
     3. Uma ChatMessage role=assistant é gravada após a IA responder
     """
-    student_id = uuid4()
+    student_id = chat_student_id
     fake_session_id = uuid4()
 
     fake_session = ChatSession(id=fake_session_id, student_id=student_id)
