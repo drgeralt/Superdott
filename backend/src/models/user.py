@@ -1,6 +1,11 @@
 from enum import Enum
-from typing import Optional
-from sqlmodel import Field, SQLModel
+from typing import Optional, TYPE_CHECKING
+from sqlmodel import Field, SQLModel, Relationship
+
+if TYPE_CHECKING:
+    from src.models.student import Student
+
+from src.models.links import ParentStudentLink
 
 class UserRole(str, Enum):
     SuperAdmin = "SuperAdmin"
@@ -14,3 +19,7 @@ class User(SQLModel, table=True):
     hashed_password: str
     is_active: bool = Field(default=True)
     role: UserRole = Field(default=UserRole.Professor)
+
+    students: list["Student"] = Relationship(
+        back_populates="parents", link_model=ParentStudentLink
+    )

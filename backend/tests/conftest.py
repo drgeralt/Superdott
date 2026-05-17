@@ -63,6 +63,9 @@ async def setup_test_database():
         await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
 
         await conn.run_sync(SQLModel.metadata.create_all)
+        
+        # Insere usuário mock (id=9999) usado pelo override_get_current_user
+        await conn.execute(text("INSERT INTO \"user\" (id, email, hashed_password, role, is_active) VALUES (9999, 'test@test.com', 'hashed', 'SuperAdmin', true) ON CONFLICT DO NOTHING"))
 
     await engine.dispose()
 
@@ -111,7 +114,7 @@ async def async_client() -> AsyncClient:
         await engine.dispose()
 
     async def override_get_current_user():
-        return User(id=1, email="test@test.com", hashed_password="hashed", role=UserRole.SuperAdmin, is_active=True)
+        return User(id=9999, email="test@test.com", hashed_password="hashed", role=UserRole.SuperAdmin, is_active=True)
 
     app.dependency_overrides[get_session] = override_get_session
     app.dependency_overrides[get_current_user] = override_get_current_user
