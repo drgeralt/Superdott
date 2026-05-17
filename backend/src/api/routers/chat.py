@@ -151,6 +151,7 @@ async def chat_pedagogico(
             msg_anon,
             student_context=ctx_anon,
             history=history_anon,
+            user_role=current_user.role,
         )
 
         # Reverter resposta
@@ -226,7 +227,10 @@ async def chat_stream(
     async def event_generator():
         try:
             raw_stream = ask_stream(
-                msg_anon, student_context=ctx_anon, history=history_anon
+                msg_anon,
+                student_context=ctx_anon,
+                history=history_anon,
+                user_role=current_user.role,
             )
             async for token in _stream_deanonymizer(raw_stream, real_first_name):
                 accumulated.append(token)

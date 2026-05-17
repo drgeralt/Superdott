@@ -1,4 +1,6 @@
 from src.rag.retriever import RetrievedChunk
+from src.models.user import UserRole
+from src.rag.prompts import PROMPT_PARENT, PROMPT_TEACHER, PROMPT_PRINCIPAL
 
 SYSTEM_PROMPT = """Você é o Assistente Pedagógico Superdott, especialista em \
 Altas Habilidades e Superdotação (AH/SD).
@@ -27,13 +29,28 @@ def build_prompt(
     chunks: list[RetrievedChunk],
     student_context: dict | None = None,
     history: list[dict] | None = None,
+    user_role: UserRole | None = None,
 ) -> str:
-    parts = [SYSTEM_PROMPT]
+    system_prompt = SYSTEM_PROMPT
+    if user_role == UserRole.Pai:
+        system_prompt = PROMPT_PARENT
+    elif user_role == UserRole.Professor:
+        system_prompt = PROMPT_TEACHER
+    elif user_role == UserRole.Diretor:
+        system_prompt = PROMPT_PRINCIPAL
+
+    parts = [system_prompt]
 
     if history:
         parts.append("\n\nHISTÓRICO DE CONVERSA:")
         for msg in history:
-            role = "DOCENTE" if msg["role"] == "user" else "SUPERDOTT"
+            if user_role == UserRole.Pai:
+                sender = "PAI/MÃE"
+            elif user_role == UserRole.Diretor:
+                sender = "GESTOR"
+            else:
+                sender = "DOCENTE"
+            role = sender if msg["role"] == "user" else "SUPERDOTT"
             parts.append(f"\n[{role}]: {msg['content']}")
 
     if chunks:
