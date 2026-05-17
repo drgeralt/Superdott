@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Brain, ShieldAlert, ArrowRight, ArrowLeft, Loader2, Sparkles } from 'lucide-react';
 import Stepper, { Step } from './components/freetriage/Stepper';
 import triagemGratis from './triagemGratis.json';
+import { calculateTriageResult } from './components/freetriage/triageCalculator'; // <-- Corrigido o ./
 
 const FreeTriage = () => {
     const [hasAccepted, setHasAccepted] = useState(false);
@@ -32,30 +33,10 @@ const FreeTriage = () => {
         }
     };
 
+    // Função corrigida sem a duplicação
     const handleFinalSubmit = () => {
         setIsCalculating(true);
-        const totalScore = Object.values(triageData.answers).reduce((acc, curr) => acc + curr, 0);
-        let profile = {};
-
-        if (totalScore <= 11) {
-            profile = {
-                title: "Perfil de Suporte e Organização",
-                description: "Os resultados indicam um desenvolvimento típico ou possíveis desafios neurodivergentes de outra natureza. Reforçamos que a triagem gratuita que você acabou de realizar não é um diagnóstico, mas o Superdott pode te ajudar a entender isso melhor.",
-                ctaText: "Criar Conta Superdott"
-            };
-        } else if (totalScore <= 22) {
-            profile = {
-                title: "Potencial Latente Identificado",
-                description: "Notamos picos de inteligência em áreas específicas. É fundamental estimular esse talento para que ele não se perca. Reforçamos que a triagem gratuita que você acabou de realizar não é um diagnóstico, mas o Superdott pode te ajudar a entender isso melhor.",
-                ctaText: "Desbloquear Potencial"
-            };
-        } else {
-            profile = {
-                title: "Forte Indício de Altas Habilidades",
-                description: `As respostas para ${triageData.childName} sugerem um quadro clássico de Altas Habilidades/Superdotação. Reforçamos que a triagem gratuita que você acabou de realizar não é um diagnóstico, mas o Superdott pode te ajudar a entender isso melhor.`,
-                ctaText: "Acessar Superdott"
-            };
-        }
+        const { totalScore, profile } = calculateTriageResult(triageData.answers, triageData.childName);
 
         setResultData(profile);
         sessionStorage.setItem('@superdott:triage_result', JSON.stringify({ ...triageData, totalScore }));
@@ -81,7 +62,6 @@ const FreeTriage = () => {
         const questionIndex = step - 2;
         if (questionIndex >= 0 && questionIndex < triagemGratis.questions.length) {
             const questionId = triagemGratis.questions[questionIndex].id;
-            // Retorna true somente se a resposta para este ID existir no objeto 'answers'
             return triageData.answers[questionId] !== undefined;
         }
 
