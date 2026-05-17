@@ -1,6 +1,6 @@
 import secrets
 import string
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, timedelta, timezone
 from uuid import UUID, uuid4
 
 from sqlmodel import Field, SQLModel
@@ -15,7 +15,8 @@ def _gerar_codigo() -> str:
 
 
 def _expiracao_padrao() -> datetime:
-    return datetime.now(UTC) + timedelta(hours=48)
+    return datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(hours=48)
+
 
 
 class StudentLinkCode(SQLModel, table=True):
@@ -24,7 +25,7 @@ class StudentLinkCode(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     code: str = Field(unique=True, index=True)
     student_id: UUID = Field(foreign_key="students.id")
-    created_by: UUID = Field(foreign_key="users.id")
+    created_by: UUID # FK para users.id — será adicionado quando autenticação estiver pronta
     expires_at: datetime = Field(default_factory=_expiracao_padrao)
     is_used: bool = Field(default=False)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))

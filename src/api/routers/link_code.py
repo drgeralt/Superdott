@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -97,8 +97,8 @@ async def resgatar_codigo(
     if link.is_used:
         raise ERRO_GENERICO
 
-    agora = datetime.now(UTC)
-    expires = link.expires_at.replace(tzinfo=UTC) if link.expires_at.tzinfo is None else link.expires_at
+    agora = datetime.now(timezone.utc).replace(tzinfo=None)
+    expires = link.expires_at.replace(tzinfo=None) if link.expires_at.tzinfo else link.expires_at
     if agora > expires:
         raise ERRO_GENERICO
 
