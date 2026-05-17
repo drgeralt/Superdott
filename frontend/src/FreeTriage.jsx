@@ -127,7 +127,8 @@ const FreeTriage = () => {
                                 <div>
                                     <h3 className="font-headline font-bold text-primary-navy mb-2">Aviso Importante e Termo de Responsabilidade</h3>
                                     <p className="font-body text-sm text-slate-600 leading-relaxed">
-                                        Este questionário baseia-se nos domínios cognitivos do WISC-V, porém <strong>não constitui um teste de QI, não possui validade clínica e não substitui uma avaliação neuropsicológica formal.</strong>
+                                        Este questionário <strong>não é um diagnóstico, não constitui um teste de QI, não possui validade clínica e não substitui uma avaliação neuropsicológica formal.</strong> O objetivo desse formulário é exclusivamente realizar um rastreio de sinais de altas habilidades.
+                                        Nós não compartilharemos suas respostas com ninguém!
                                     </p>
                                 </div>
                             </div>
