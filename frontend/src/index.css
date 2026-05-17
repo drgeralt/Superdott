@@ -33,6 +33,10 @@
     }
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 .pill-nav-container {
     position: relative;
     z-index: 99;
