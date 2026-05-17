@@ -2,7 +2,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.routers import assessment, chat, documents, students, system, audit, dashboard
+from src.api.routers import assessment, chat, documents, students, system, audit, dashboard, knowledge_base
 from src.core.config import settings
 
 logging.basicConfig(level=logging.INFO)
@@ -37,6 +37,7 @@ app.include_router(assessment.router, prefix="/api")
 app.include_router(audit.router, dependencies=protected)
 app.include_router(documents.router, dependencies=protected)
 app.include_router(dashboard.router, dependencies=protected)
+app.include_router(knowledge_base.router, dependencies=protected)
 
 if not settings.GEMINI_API_KEY or settings.GEMINI_API_KEY == "sua_chave_aqui":
     logger.error("Chave do Gemini não encontrada ou padrão!")

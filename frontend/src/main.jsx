@@ -9,6 +9,7 @@ import Dashboard from './Dashboard.jsx';
 import Triage from './Triage.jsx';
 import Register from './Register.jsx';
 import TriagePLG from './TriagePLG.jsx';
+import MotorRAG from './MotorRAG.jsx';
 
 import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
 import MainLayout from './components/layout/MainLayout.jsx';
@@ -51,7 +52,7 @@ createRoot(document.getElementById('root')).render(
                 <Route path="/admin/rag" element={
                     <ProtectedRoute allowedRoles={['SuperAdmin']}>
                         <MainLayout>
-                            <PlaceholderPage />
+                            <MotorRAG />
                         </MainLayout>
                     </ProtectedRoute>
                 } />
