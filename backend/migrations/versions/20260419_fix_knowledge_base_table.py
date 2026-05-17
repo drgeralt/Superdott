@@ -34,8 +34,9 @@ def upgrade() -> None:
         sa.Column("chunk_index", sa.Integer(), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=False), nullable=True),
         sa.PrimaryKeyConstraint("id"),
+        if_not_exists=True,
     )
 
 
 def downgrade() -> None:
-    op.drop_table("knowledge_base")
+    op.drop_table("knowledge_base",if_exists=True)
