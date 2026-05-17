@@ -7,6 +7,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.core.database import get_session
 from src.models.audit_log import AuditAction, AuditLog
+from src.api.deps import require_role
 
 router = APIRouter(prefix="/api/audit-logs", tags=["Audit"])
 
@@ -18,7 +19,7 @@ async def list_audit_logs(
     limit: int = Query(default=50, le=200),
     offset: int = Query(default=0),
     session: AsyncSession = Depends(get_session),
-    # _: None = Depends(require_role(UserRole.SUPER_ADMIN)),  ← ativar com TASK-014
+    _: None = Depends(require_role(["SuperAdmin"])),
 ):
     query = select(AuditLog)
 
