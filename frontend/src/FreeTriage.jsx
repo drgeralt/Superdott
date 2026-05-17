@@ -41,7 +41,7 @@ const FreeTriage = () => {
             profile = {
                 title: "Perfil de Suporte e Organização",
                 description: "Os resultados indicam um desenvolvimento típico ou possíveis desafios neurodivergentes de outra natureza. Reforçamos que a triagem gratuita que você acabou de realizar não é um diagnóstico, mas o Superdott pode te ajudar a entender isso melhor.",
-                ctaText: "Criar Conta de Suporte"
+                ctaText: "Criar Conta Superdott"
             };
         } else if (totalScore <= 22) {
             profile = {
