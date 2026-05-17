@@ -21,6 +21,12 @@ jobs:
         run: pip install ruff bandit
 
       - name: Run Ruff Check (Linter + Isort)
+<<<<<<< HEAD
+        run: ruff check backend/src/ --exclude backend/src/generated
+
+      - name: Run Security Scan (Bandit)
+        run: bandit -r backend/src/ -x backend/src/generated -ll
+=======
         run: ruff check src/
 
       - name: Run Security Scan (Bandit)
@@ -63,3 +69,4 @@ jobs:
           TEST_DATABASE_URL: "postgresql://admin:admin@localhost:5432/superdott_test"
           ENV: "test"
         run: pytest tests/ -v
+>>>>>>> origin/develop
