@@ -11,9 +11,12 @@ from src.core.database import get_session
 from src.models.chat_message import ChatMessage
 from src.models.chat_session import ChatSession
 from src.models.user import User, UserRole
+from src.models.student import Student
 from src.models.links import ParentStudentLink, SchoolStudentLink
 from src.api.deps import get_current_user
 from src.rag.pipeline import ask, ask_stream
+
+from src.api.services.anonymization_service import AnonymizationService
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/chat", tags=["Chat AI"])
@@ -63,6 +66,38 @@ async def _get_recent_history(session_id: UUID, session: AsyncSession) -> list[d
     messages = list(reversed(result.all()))
     return [{"role": m.role, "content": m.content} for m in messages]
 
+async def _stream_deanonymizer(stream, first_name: str):
+    buffer = ""
+    target = "[ALUNO]"
+    target_len = len(target)
+    
+    async for chunk in stream:
+        buffer += chunk
+        while True:
+            idx = buffer.find(target)
+            if idx != -1:
+                yield buffer[:idx] + first_name
+                buffer = buffer[idx + target_len:]
+                continue
+                
+            partial_match_len = 0
+            for i in range(1, target_len):
+                sub = target[:i]
+                if buffer.endswith(sub):
+                    partial_match_len = i
+                    break
+            
+            if partial_match_len > 0:
+                yield buffer[:-partial_match_len]
+                buffer = buffer[-partial_match_len:]
+            else:
+                yield buffer
+                buffer = ""
+            break
+            
+    if buffer:
+        yield buffer.replace(target, first_name)
+
 @router.post("")
 async def chat_pedagogico(
     payload: ChatRequest,
@@ -70,9 +105,39 @@ async def chat_pedagogico(
     current_user: User = Depends(get_current_user)
 ):
     try:
+        # Obter dados do aluno
+        student_result = await session.exec(select(Student).where(Student.id == payload.student_id))
+        student = student_result.first()
+        if not student:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Aluno não encontrado.")
+
         chat_session = await _get_or_create_session(payload.student_id, current_user, session)
         history = await _get_recent_history(chat_session.id, session)
 
+        # Anonimizar mensagem, contexto e histórico
+        msg_anon = AnonymizationService.anonymize(payload.message, student.full_name)
+        
+        ctx_anon = None
+        if payload.student_context:
+            import copy
+            ctx_anon = copy.deepcopy(payload.student_context)
+            if "name" in ctx_anon:
+                ctx_anon["name"] = AnonymizationService.anonymize(ctx_anon["name"], student.full_name)
+        else:
+            ctx_anon = {
+                "name": "[ALUNO]",
+                "scores": {"intelectual": 0, "criatividade": 0, "liderança": 0},
+            }
+
+        history_anon = [
+            {
+                "role": h["role"],
+                "content": AnonymizationService.anonymize(h["content"], student.full_name)
+            }
+            for h in history
+        ]
+
+        # Salvar a mensagem do usuário (real)
         user_msg = ChatMessage(
             session_id=chat_session.id,
             role="user",
@@ -81,21 +146,27 @@ async def chat_pedagogico(
         session.add(user_msg)
         await session.commit()
 
+        # Consultar o RAG com dados anonimizados
         rag_response = await ask(
-            payload.message,
-            student_context=payload.student_context,
-            history=history,
+            msg_anon,
+            student_context=ctx_anon,
+            history=history_anon,
         )
 
+        # Reverter resposta
+        real_first_name = student.full_name.split()[0]
+        answer_real = AnonymizationService.deanonymize(rag_response.answer, real_first_name)
+
+        # Salvar a resposta da IA (real)
         assistant_msg = ChatMessage(
             session_id=chat_session.id,
             role="assistant",
-            content=rag_response.answer,
+            content=answer_real,
         )
         session.add(assistant_msg)
         await session.commit()
 
-        return {"text": rag_response.answer, "sources": rag_response.sources}
+        return {"text": answer_real, "sources": rag_response.sources}
     except HTTPException:
         raise
     except Exception as e:
@@ -112,14 +183,35 @@ async def chat_stream(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    ctx = payload.student_context or {
-        "name": "Aluno Padrão",
-        "scores": {"intelectual": 0, "criatividade": 0, "liderança": 0},
-    }
+    student_result = await session.exec(select(Student).where(Student.id == payload.student_id))
+    student = student_result.first()
+    if not student:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Aluno não encontrado.")
 
     chat_session = await _get_or_create_session(payload.student_id, current_user, session)
     history = await _get_recent_history(chat_session.id, session)
 
+    # Anonimizar mensagem, contexto e histórico
+    msg_anon = AnonymizationService.anonymize(payload.message, student.full_name)
+    
+    ctx = payload.student_context or {
+        "name": "Aluno Padrão",
+        "scores": {"intelectual": 0, "criatividade": 0, "liderança": 0},
+    }
+    import copy
+    ctx_anon = copy.deepcopy(ctx)
+    if "name" in ctx_anon:
+        ctx_anon["name"] = AnonymizationService.anonymize(ctx_anon["name"], student.full_name)
+
+    history_anon = [
+        {
+            "role": h["role"],
+            "content": AnonymizationService.anonymize(h["content"], student.full_name)
+        }
+        for h in history
+    ]
+
+    # Salvar a mensagem do usuário (real)
     user_msg = ChatMessage(
         session_id=chat_session.id,
         role="user",
@@ -129,12 +221,14 @@ async def chat_stream(
     await session.commit()
 
     accumulated: list[str] = []
+    real_first_name = student.full_name.split()[0]
 
     async def event_generator():
         try:
-            async for token in ask_stream(
-                payload.message, student_context=ctx, history=history
-            ):
+            raw_stream = ask_stream(
+                msg_anon, student_context=ctx_anon, history=history_anon
+            )
+            async for token in _stream_deanonymizer(raw_stream, real_first_name):
                 accumulated.append(token)
                 yield token
         finally:

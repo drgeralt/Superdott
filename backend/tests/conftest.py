@@ -65,7 +65,7 @@ async def setup_test_database():
         await conn.run_sync(SQLModel.metadata.create_all)
         
         # Insere usuário mock (id=9999) usado pelo override_get_current_user
-        await conn.execute(text("INSERT INTO \"user\" (id, email, hashed_password, role, is_active) VALUES (9999, 'test@test.com', 'hashed', 'SuperAdmin', true) ON CONFLICT DO NOTHING"))
+        await conn.execute(text("INSERT INTO \"user\" (id, email, hashed_password, role, is_active, accepted_tcle) VALUES (9999, 'test@test.com', 'hashed', 'SuperAdmin', true, true) ON CONFLICT DO NOTHING"))
 
     await engine.dispose()
 
@@ -132,4 +132,37 @@ async def db_session() -> AsyncSession:
     factory = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     async with factory() as session:
         yield session
+    await engine.dispose()
+
+
+import uuid
+
+@pytest_asyncio.fixture()
+async def chat_student_id():
+    """Cria um aluno isolado no banco e limpa após o teste."""
+    engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
+    student_id = str(uuid.uuid4())
+    async with AsyncSession(engine) as session:
+        await session.exec(
+            text("INSERT INTO students (id, full_name, email) VALUES (:id, :name, :email)"),
+            params={
+                "id": student_id,
+                "name": "Aluno Chat Teste",
+                "email": f"chat_{student_id[:8]}@escola.com",
+            },
+        )
+        await session.commit()
+
+    yield student_id
+
+    # Limpeza (Teardown)
+    async with AsyncSession(engine) as session:
+        try:
+            await session.exec(
+                text("DELETE FROM students WHERE id = :id"),
+                params={"id": student_id},
+            )
+            await session.commit()
+        except Exception:
+            pass
     await engine.dispose()

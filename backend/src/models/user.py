@@ -7,6 +7,8 @@ if TYPE_CHECKING:
 
 from src.models.links import ParentStudentLink
 
+from datetime import datetime
+
 class UserRole(str, Enum):
     SuperAdmin = "SuperAdmin"
     Diretor = "Diretor"
@@ -19,6 +21,8 @@ class User(SQLModel, table=True):
     hashed_password: str
     is_active: bool = Field(default=True)
     role: UserRole = Field(default=UserRole.Professor)
+    accepted_tcle: bool = Field(default=False)
+    tcle_accepted_at: datetime | None = Field(default=None)
 
     students: list["Student"] = Relationship(
         back_populates="parents", link_model=ParentStudentLink

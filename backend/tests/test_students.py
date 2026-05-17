@@ -104,7 +104,7 @@ async def test_get_students_isolamento_pai(async_client: AsyncClient, sample_stu
     # Cria o vínculo do Pai com o Aluno (precisa criar o User 999 no banco antes)
     async with AsyncSession(test_engine) as session:
         await session.exec(
-            text("INSERT INTO \"user\" (id, email, hashed_password, role, is_active) VALUES (999, 'pai999@test.com', 'hashed', 'Pai', true)")
+            text("INSERT INTO \"user\" (id, email, hashed_password, role, is_active, accepted_tcle) VALUES (999, 'pai999@test.com', 'hashed', 'Pai', true, true)")
         )
         await session.exec(
             text("INSERT INTO parent_student_links (parent_id, student_id) VALUES (999, :id)"),

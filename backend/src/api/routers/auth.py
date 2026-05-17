@@ -32,3 +32,44 @@ async def login_for_access_token(
         expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+from pydantic import BaseModel
+from src.core.security import get_password_hash
+from datetime import datetime, UTC
+from src.models.user import UserRole
+
+class UserRegister(BaseModel):
+    email: str
+    password: str
+    role: UserRole = UserRole.Pai
+    accepted_tcle: bool
+
+@router.post("/register", status_code=status.HTTP_201_CREATED)
+async def register_user(
+    payload: UserRegister,
+    session: Annotated[AsyncSession, Depends(get_session)]
+):
+    if not payload.accepted_tcle:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="O aceite do TCLE e da Política de Privacidade é obrigatório."
+        )
+
+    # Check if email exists
+    result = await session.exec(select(User).where(User.email == payload.email))
+    if result.first():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email já cadastrado.")
+
+    user = User(
+        email=payload.email,
+        hashed_password=get_password_hash(payload.password),
+        role=payload.role,
+        accepted_tcle=True,
+        tcle_accepted_at=datetime.now(UTC).replace(tzinfo=None)
+    )
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+
+    return {"message": "Usuário criado com sucesso", "id": user.id}

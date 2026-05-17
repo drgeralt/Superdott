@@ -83,3 +83,40 @@ async def test_role_restriction_returns_403(async_client: AsyncClient, setup_use
         headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_register_without_tcle_fails(async_client: AsyncClient):
+    app.dependency_overrides.pop(get_current_user, None)
+    
+    response = await async_client.post(
+        "/api/auth/register",
+        json={
+            "email": "newuser@test.com",
+            "password": "password123",
+            "accepted_tcle": False
+        }
+    )
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_register_success(async_client: AsyncClient):
+    app.dependency_overrides.pop(get_current_user, None)
+    
+    # Geramos um email dinâmico para não falhar por unique constraint se rodar várias vezes
+    import uuid
+    email = f"user_{uuid.uuid4().hex[:6]}@test.com"
+
+    response = await async_client.post(
+        "/api/auth/register",
+        json={
+            "email": email,
+            "password": "password123",
+            "accepted_tcle": True
+        }
+    )
+    assert response.status_code == 201
+    data = response.json()
+    assert "id" in data
+    assert data["message"] == "Usuário criado com sucesso"
