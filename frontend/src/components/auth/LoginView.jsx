@@ -57,10 +57,44 @@ const ProfileButton = ({ id, icon, label, isActive, onSelect }) => {
 const LoginForm = () => {
     const [activeProfile, setActiveProfile] = useState('docente');
     const [showPassword, setShowPassword] = useState(false);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const handleLogin = (e) => {
+
+    const handleLogin = async (e) => {
         e.preventDefault();
-        navigate('/dashboard');
+        setError('');
+        setLoading(true);
+
+        const formData = new URLSearchParams();
+        formData.append('username', email.trim());
+        formData.append('password', password);
+
+        try {
+            const response = await fetch('/api/auth/token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.detail || 'E-mail ou senha incorretos.');
+            }
+
+            const data = await response.json();
+            // Salva o token no localStorage
+            localStorage.setItem('superdott_token', data.access_token);
+            
+            // Navega para o dashboard
+            navigate('/dashboard');
+        } catch (err) {
+            setError(err.message || 'Erro ao conectar ao servidor de autenticação.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -83,6 +117,13 @@ const LoginForm = () => {
                     <ProfileButton id="admin" icon="admin_panel_settings" label="Administrativo" isActive={activeProfile === 'admin'} onSelect={setActiveProfile} />
                 </div>
 
+                {error && (
+                    <div className="mb-4 p-3 bg-red-50 border-l-4 border-red-500 text-red-700 text-xs font-bold rounded-r-lg flex items-center gap-2 shrink-0">
+                        <span className="material-symbols-outlined text-sm">error</span>
+                        <span>{error}</span>
+                    </div>
+                )}
+
                 <form className="space-y-4 xl:space-y-5 shrink-0" onSubmit={handleLogin}>
                     <div className="space-y-1.5">
                         <label className="block font-label text-[10px] xl:text-xs font-bold text-primary-navy uppercase tracking-wider ml-1" htmlFor="email">
@@ -93,11 +134,13 @@ const LoginForm = () => {
                                 <span className="material-symbols-outlined text-on-surface-variant text-xl">alternate_email</span>
                             </div>
                             <input
-                                className="block w-full pl-11 pr-4 py-3 bg-surface-container-low border-0 border-b-2 border-outline-variant focus:border-primary-navy focus:ring-0 transition-all rounded-t-xl placeholder:text-outline text-on-surface font-medium text-sm"
+                                className="block w-full pl-11 pr-4 py-3 bg-surface-container-low border-0 border-b-2 border-outline-variant focus:border-primary-navy focus:ring-0 transition-all rounded-t-xl placeholder:text-outline text-on-surface font-medium text-sm outline-none"
                                 id="email"
                                 name="email"
                                 placeholder="nome@superdott.edu"
                                 type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 required
                             />
                         </div>
@@ -115,11 +158,13 @@ const LoginForm = () => {
                                 <span className="material-symbols-outlined text-on-surface-variant text-xl">lock</span>
                             </div>
                             <input
-                                className="block w-full pl-11 pr-12 py-3 bg-surface-container-low border-0 border-b-2 border-outline-variant focus:border-primary-navy focus:ring-0 transition-all rounded-t-xl placeholder:text-outline text-on-surface font-medium text-sm"
+                                className="block w-full pl-11 pr-12 py-3 bg-surface-container-low border-0 border-b-2 border-outline-variant focus:border-primary-navy focus:ring-0 transition-all rounded-t-xl placeholder:text-outline text-on-surface font-medium text-sm outline-none"
                                 id="password"
                                 name="password"
                                 placeholder="••••••••"
                                 type={showPassword ? "text" : "password"}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 required
                             />
                             <button
@@ -142,19 +187,27 @@ const LoginForm = () => {
                     <button
                         className="w-full py-3 px-6 mt-2 bg-[linear-gradient(135deg,#0C2C47_0%,#4A9D95_100%)] text-white font-headline font-bold text-base xl:text-lg rounded-full shadow-lg hover:shadow-primary-navy/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
                         type="submit"
+                        disabled={loading}
                     >
-                        Entrar no Superdott
+                        {loading ? 'Entrando...' : 'Entrar no Superdott'}
                         <span className="material-symbols-outlined text-xl">arrow_forward</span>
                     </button>
                 </form>
 
                 <div className="mt-auto pt-6 pb-2 border-t border-slate-200 text-center shrink-0">
-                    <p className="text-xs xl:text-sm text-on-surface-variant">
+                    <p className="text-xs xl:text-sm text-on-surface-variant mb-2">
                         Não possui acesso?
-                        <a className="text-primary-navy ml-1 font-bold hover:underline decoration-2 underline-offset-4" href="#">
-                            Contate a Coordenação
+                        <a className="text-primary-navy ml-1 font-bold hover:underline decoration-2 underline-offset-4 cursor-pointer" onClick={() => navigate('/register')}>
+                            Cadastre-se aqui
                         </a>
                     </p>
+                    <div className="bg-teal-custom/5 border border-teal-custom/10 p-3 rounded-2xl flex items-center justify-between gap-3 shadow-sm hover:scale-[1.01] transition-all cursor-pointer mt-2" onClick={() => navigate('/triagem-plg')}>
+                        <div className="text-left">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-teal-custom block">Fluxo de Onboarding</span>
+                            <span className="text-xs font-bold text-primary-navy block">Faça uma Triagem Rápida</span>
+                        </div>
+                        <span className="material-symbols-outlined text-teal-custom">arrow_forward_ios</span>
+                    </div>
                 </div>
             </div>
         </section>
