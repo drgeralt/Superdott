@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './index.css';
 
+import LandingPage from './LandingPage.jsx';
 import Login from './Login.jsx';
 import Dashboard from './Dashboard.jsx';
 import Triage from './Triage.jsx';
@@ -18,7 +19,8 @@ createRoot(document.getElementById('root')).render(
         <BrowserRouter>
             <Routes>
                 {/* Rotas Públicas */}
-                <Route path="/" element={<Login />} />
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/triagem-plg" element={<TriagePLG />} />
 
