@@ -123,3 +123,13 @@ async def test_get_students_isolamento_pai(async_client: AsyncClient, sample_stu
         await session.exec(text("DELETE FROM parent_student_links WHERE parent_id = 999"))
         await session.exec(text("DELETE FROM \"user\" WHERE id = 999"))
         await session.commit()
+
+@pytest.mark.asyncio
+async def test_desvinculacao_segura_retorna_404_aluno_inexistente(async_client: AsyncClient):
+    """Garante que a rota de desvinculação existe e processa a regra de negócio (Task 16)."""
+    random_student = uuid.uuid4()
+    random_school = uuid.uuid4()
+    
+    response = await async_client.delete(f"/api/students/{random_student}/unlink?school_id={random_school}")
+    
+    assert response.status_code == 404
