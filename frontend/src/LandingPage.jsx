@@ -63,7 +63,7 @@ const LandingPage = () => {
                             Nossa metodologia combina precisão técnica e IA avançada para mapear talentos e impulsionar o aprendizado.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-                            <Link to="/triagem" className="pointer-events-auto bg-gradient-to-br from-primary-navy to-teal-custom text-white px-10 py-4 rounded-full font-headline font-bold text-lg hover:shadow-lg hover:shadow-primary-navy/30 transition-all duration-300 active:scale-95 flex items-center gap-2">
+                            <Link to="/triagemgratuita" className="pointer-events-auto bg-gradient-to-br from-primary-navy to-teal-custom text-white px-10 py-4 rounded-full font-headline font-bold text-lg hover:shadow-lg hover:shadow-primary-navy/30 transition-all duration-300 active:scale-95 flex items-center gap-2">
                                 Fazer Teste Gratuito
                                 <ArrowUpRight className="w-5 h-5" strokeWidth={2.5} />
                             </Link>
@@ -190,7 +190,7 @@ const LandingPage = () => {
                         <p className="font-body text-lg md:text-xl text-slate-600 mb-12 leading-relaxed max-w-2xl mx-auto">
                             Dê o primeiro passo na aceleração pedagógica. Faça o teste de triagem gratuito e descubra como podemos ajudar.
                         </p>
-                        <Link to="/triagem" className="bg-primary-navy text-white px-12 py-5 rounded-full font-headline font-bold text-lg hover:shadow-2xl hover:shadow-primary-navy/20 hover:scale-105 transition-all duration-300 active:scale-95 flex items-center justify-center gap-3 mx-auto w-max">
+                        <Link to="/triagemgratuita" className="bg-primary-navy text-white px-12 py-5 rounded-full font-headline font-bold text-lg hover:shadow-2xl hover:shadow-primary-navy/20 hover:scale-105 transition-all duration-300 active:scale-95 flex items-center justify-center gap-3 mx-auto w-max">
                             Iniciar Teste Gratuito
                             <ArrowUpRight className="w-5 h-5" strokeWidth={2.5} />
                         </Link>
