@@ -17,6 +17,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 # Registro das rotas
 from src.api.routers import auth
 from src.api.deps import get_current_user
