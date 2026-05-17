@@ -44,3 +44,7 @@ htmlcov/
 # --- OS específicos ---
 Thumbs.db
 desktop.ini
+
+# --- Local Storage (PDF Cache, etc) ---
+backend/storage/
+storage/
