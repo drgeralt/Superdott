@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import useStudentStore from '../../store/useStudentStore';
+import ExportPDIModal from './ExportPDIModal';
 
 const AIChat = () => {
     const student = useStudentStore(state => state.selectedStudent);
+    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [messages, setMessages] = useState([
         {
             id: 'welcome',
@@ -124,6 +126,15 @@ const AIChat = () => {
                         </div>
                     </div>
                 </div>
+                {student && (
+                    <button
+                        onClick={() => setIsExportModalOpen(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-navy/20 hover:border-primary-navy/40 text-[11px] font-bold text-primary-navy hover:bg-slate-50 transition-all cursor-pointer outline-none active:scale-95 shrink-0"
+                    >
+                        <span className="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+                        Exportar PDI
+                    </button>
+                )}
             </header>
 
             <div ref={chatContainerRef} className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6 scroll-smooth">
@@ -178,6 +189,12 @@ const AIChat = () => {
                     </button>
                 </form>
             </footer>
+            {isExportModalOpen && student && (
+                <ExportPDIModal 
+                    student={student} 
+                    onClose={() => setIsExportModalOpen(false)} 
+                />
+            )}
         </section>
     );
 };
