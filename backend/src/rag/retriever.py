@@ -25,7 +25,10 @@ async def retrieve(
     query_vector = embed_query(question)
     vector_str = "[" + ",".join(str(x) for x in query_vector) + "]"
 
-    conn = await asyncpg.connect(settings.DATABASE_URL)
+    db_url = str(settings.DATABASE_URL)
+    if db_url.startswith("postgresql+asyncpg://"):
+        db_url = db_url.replace("postgresql+asyncpg://", "postgresql://", 1)
+    conn = await asyncpg.connect(db_url)
     is_parent = (user_role == "Pai")
 
     try:
