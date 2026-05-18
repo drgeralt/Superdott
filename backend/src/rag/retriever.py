@@ -23,11 +23,19 @@ async def retrieve(question: str, top_k: int = 5, similarity_threshold: float = 
     try:
         rows = await conn.fetch(
             """
-            SELECT id::text, content, source,
-                1 - (embedding <=> $1::vector) AS similarity
-            FROM knowledge_base
-            WHERE 1 - (embedding <=> $1::vector) >= $2
-            ORDER BY embedding <=> $1::vector LIMIT $3
+            SELECT id::text, content, source, similarity FROM (
+                SELECT id::text, content, source,
+                    1 - (embedding <=> $1::vector) AS similarity
+                FROM knowledge_base
+                UNION ALL
+                SELECT dc.id::text, dc.conteudo_texto AS content, d.nome AS source,
+                    1 - (dc.embedding <=> $1::vector) AS similarity
+                FROM document_chunks dc
+                JOIN documents d ON dc.document_id = d.id
+            ) AS unified_chunks
+            WHERE similarity >= $2
+            ORDER BY similarity DESC
+            LIMIT $3
             """,
             vector_str,
             similarity_threshold,

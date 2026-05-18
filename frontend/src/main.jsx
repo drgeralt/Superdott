@@ -10,6 +10,7 @@ import Triage from './Triage.jsx';
 import FreeTriage from './FreeTriage.jsx';
 import Register from './Register.jsx';
 import TriagePLG from './TriagePLG.jsx';
+import MotorRAG from './MotorRAG.jsx';
 import ImportStudents from './ImportStudents.jsx';
 
 import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
@@ -54,7 +55,7 @@ createRoot(document.getElementById('root')).render(
                 <Route path="/admin/rag" element={
                     <ProtectedRoute allowedRoles={['SuperAdmin']}>
                         <MainLayout>
-                            <PlaceholderPage />
+                            <MotorRAG />
                         </MainLayout>
                     </ProtectedRoute>
                 } />

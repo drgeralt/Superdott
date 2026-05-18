@@ -89,3 +89,73 @@ class IngestionService:
                     Causa: {str(e)}"
             )
             raise RuntimeError(f"Falha na vetorização/persistência: {str(e)}") from e
+
+    async def process_admin_document(self, file_bytes: bytes, filename: str):
+        """
+        Orquestra o pipeline de ingestão para tabelas Document e DocumentChunk
+        Garante Atomicidade (ACID) - Salva o documento e todos os chunks ou nenhum.
+        """
+        from src.models.document import Document, DocumentChunk
+
+        full_text = await run_in_threadpool(extract_text_from_pdf, file_bytes)
+
+        if not full_text:
+            raise ValueError("O documento está vazio ou não contém texto legível.")
+
+        chunks = await run_in_threadpool(
+            chunk_text, full_text, chunk_size=1000, overlap=200
+        )
+
+        document = Document(nome=filename)
+        self.db.add(document)
+        await self.db.flush()
+
+        db_records = []
+        try:
+            for i, chunk in enumerate(chunks):
+                response = await run_in_threadpool(
+                    client.models.embed_content,
+                    model="gemini-embedding-001",
+                    contents=chunk,
+                )
+
+                def extract_floats(obj):
+                    if isinstance(obj, dict):
+                        for value in obj.values():
+                            yield from extract_floats(value)
+                    elif isinstance(obj, list):
+                        for item in obj:
+                            yield from extract_floats(item)
+                    elif isinstance(obj, (float, int)):
+                        yield float(obj)
+
+                embedding_vector = list(extract_floats(response.embeddings))
+
+                if len(embedding_vector) != 3072:
+                    raise ValueError(
+                        f"O modelo gerou um vetor de {len(embedding_vector)} posições, mas o banco exige 3072."
+                    )
+
+                chunk_record = DocumentChunk(
+                    id=uuid.uuid4(),
+                    document_id=document.id,
+                    conteudo_texto=chunk,
+                    embedding=embedding_vector,
+                )
+                db_records.append(chunk_record)
+
+            self.db.add_all(db_records)
+            await self.db.commit()
+
+            logger.info(
+                f"Sucesso: {len(chunks)} chunks ingeridos para o documento {filename}"
+            )
+            return document, len(chunks)
+
+        except Exception as e:
+            await self.db.rollback()
+            logger.error(
+                f"Erro na ingestão do documento {filename}. Rollback executado. Causa: {str(e)}"
+            )
+            raise RuntimeError(f"Falha na vetorização/persistência: {str(e)}") from e
+
