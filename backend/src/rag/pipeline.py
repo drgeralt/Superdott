@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from uuid import UUID
 
 from google import genai
 
@@ -28,12 +29,19 @@ async def ask(
     top_k: int = 5,
     similarity_threshold: float = 0.5,
     user_role: UserRole | None = None,
+    school_id: UUID | None = None,
+    student_id: UUID | None = None,
 ) -> RAGResponse:
 
     try:
-        # 1. Busca no banco
+        # 1. Busca no banco com filtro opcional de escola e aluno
         chunks = await retrieve(
-            question=question, top_k=top_k, similarity_threshold=similarity_threshold
+            question=question,
+            top_k=top_k,
+            similarity_threshold=similarity_threshold,
+            school_id=school_id,
+            student_id=student_id,
+            user_role=user_role.value if hasattr(user_role, 'value') else str(user_role) if user_role else None,
         )
 
         # 2. Gera resposta
@@ -65,11 +73,16 @@ async def ask_stream(
     top_k: int = 5,
     similarity_threshold: float = 0.5,
     user_role: UserRole | None = None,
+    school_id: UUID | None = None,
+    student_id: UUID | None = None,
 ):
     chunks = await retrieve(
         question=question,
         top_k=top_k,
         similarity_threshold=similarity_threshold,
+        school_id=school_id,
+        student_id=student_id,
+        user_role=user_role.value if hasattr(user_role, 'value') else str(user_role) if user_role else None,
     )
 
     prompt = build_prompt(

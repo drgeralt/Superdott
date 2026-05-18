@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import logoNegative from '../../assets/img/logo-negative.png';
 import { useNavigate } from 'react-router-dom';
+import useAuthStore from '../../store/useAuthStore';
 
 const LoginVisual = () => (
     <section className="hidden lg:flex flex-col justify-between p-8 lg:p-12 relative overflow-hidden bg-[linear-gradient(135deg,#E4F2EA_0%,#f9f9ff_100%)] h-full">
@@ -85,8 +86,9 @@ const LoginForm = () => {
             }
 
             const data = await response.json();
-            // Salva o token no localStorage
+            // Salva o token no localStorage e no useAuthStore para que a mudança de estado seja reativa
             localStorage.setItem('superdott_token', data.access_token);
+            useAuthStore.getState().setToken(data.access_token);
             
             // Navega para o dashboard
             navigate('/dashboard');

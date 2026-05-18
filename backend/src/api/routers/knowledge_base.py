@@ -8,6 +8,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.core.database import get_session
 from src.models.user import User, UserRole
 from src.models.document import Document, DocumentChunk
+from src.models.school import School
 from src.api.deps import require_role
 from src.api.services.ingestion_service import IngestionService
 
@@ -15,15 +16,86 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/admin/knowledge-base", tags=["KnowledgeBaseAdmin"])
 
+
+@router.get("/schools", status_code=status.HTTP_200_OK)
+async def list_schools(
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(require_role(["SuperAdmin", "Diretor", "Professor"]))
+):
+    """
+    Lista todas as escolas no sistema para seleção.
+    """
+    try:
+        schools_res = await session.exec(select(School).order_by(School.name.asc()))
+        schools = schools_res.all()
+        return [
+            {
+                "id": str(school.id),
+                "name": school.name,
+                "address": school.address
+            }
+            for school in schools
+        ]
+    except Exception as exc:
+        logger.exception("Falha ao listar escolas")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro interno ao listar escolas."
+        )
+
+
+@router.post("/schools", status_code=status.HTTP_201_CREATED)
+async def create_school(
+    payload: dict,
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(require_role(["SuperAdmin", "Diretor"]))
+):
+    """
+    Cria uma nova escola no sistema.
+    """
+    try:
+        name = payload.get("name")
+        address = payload.get("address", "")
+        if not name:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Nome da escola é obrigatório."
+            )
+            
+        school = School(name=name, address=address)
+        session.add(school)
+        await session.commit()
+        await session.refresh(school)
+        
+        return {
+            "success": True,
+            "message": f"Escola '{school.name}' criada com sucesso.",
+            "school": {
+                "id": str(school.id),
+                "name": school.name,
+                "address": school.address
+            }
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception("Falha ao criar escola")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro interno ao criar escola."
+        )
+
+
 @router.post("/upload", status_code=status.HTTP_200_OK)
 async def upload_document(
     file: UploadFile = File(...),
+    school_id: uuid.UUID | None = None,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(require_role(["SuperAdmin"]))
+    current_user: User = Depends(require_role(["SuperAdmin", "Diretor"]))
 ):
     """
     Recebe um PDF, extrai texto, divide em chunks, gera embeddings
-    e salva nas tabelas documents e document_chunks. Exclusivo para SuperAdmins.
+    e salva nas tabelas documents e document_chunks. Permite vincular a uma escola específica.
     """
     if file.content_type != "application/pdf" or not file.filename.lower().endswith(".pdf"):
         raise HTTPException(
@@ -41,7 +113,7 @@ async def upload_document(
             )
 
         service = IngestionService(session)
-        document, chunks_count = await service.process_admin_document(file_bytes, file.filename)
+        document, chunks_count = await service.process_admin_document(file_bytes, file.filename, school_id=school_id)
 
         return {
             "success": True,
@@ -49,7 +121,8 @@ async def upload_document(
             "id": str(document.id),
             "nome": document.nome,
             "data_upload": document.data_upload.isoformat(),
-            "chunks_created": chunks_count
+            "chunks_created": chunks_count,
+            "school_id": str(document.school_id) if document.school_id else None
         }
 
     except ValueError as ve:
@@ -75,20 +148,25 @@ async def upload_document(
 
 @router.get("", status_code=status.HTTP_200_OK)
 async def list_documents(
+    school_id: uuid.UUID | None = None,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(require_role(["SuperAdmin"]))
+    current_user: User = Depends(require_role(["SuperAdmin", "Diretor", "Professor"]))
 ):
     """
-    Lista todos os documentos inseridos na base de conhecimento. Exclusivo para SuperAdmins.
+    Lista todos os documentos inseridos na base de conhecimento (globais ou de uma escola).
     """
     try:
-        # Fetch documents and count how many chunks each has
-        documents_res = await session.exec(select(Document).order_by(Document.data_upload.desc()))
+        if school_id:
+            query = select(Document).where(Document.school_id == school_id)
+        else:
+            query = select(Document).where(Document.school_id == None)
+            
+        query = query.order_by(Document.data_upload.desc())
+        documents_res = await session.exec(query)
         documents = documents_res.all()
 
         results = []
         for doc in documents:
-            # Query count of chunks
             chunks_count_res = await session.exec(
                 select(func.count(DocumentChunk.id)).where(DocumentChunk.document_id == doc.id)
             )
@@ -98,7 +176,8 @@ async def list_documents(
                 "id": str(doc.id),
                 "nome": doc.nome,
                 "data_upload": doc.data_upload.isoformat(),
-                "chunks_count": chunks_count
+                "chunks_count": chunks_count,
+                "school_id": str(doc.school_id) if doc.school_id else None
             })
 
         return results
@@ -114,7 +193,7 @@ async def list_documents(
 async def delete_document(
     document_id: uuid.UUID,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(require_role(["SuperAdmin"]))
+    current_user: User = Depends(require_role(["SuperAdmin", "Diretor"]))
 ):
     """
     Remove um documento específico e todos os seus vetores/chunks associados (em cascata).

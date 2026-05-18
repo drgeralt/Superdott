@@ -1,9 +1,11 @@
+from uuid import UUID
 from enum import Enum
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, List
 from sqlmodel import Field, SQLModel, Relationship
 
 if TYPE_CHECKING:
     from src.models.student import Student
+    from src.models.student_document import StudentDocument
 
 from src.models.links import ParentStudentLink
 
@@ -23,7 +25,11 @@ class User(SQLModel, table=True):
     role: UserRole = Field(default=UserRole.Professor)
     accepted_tcle: bool = Field(default=False)
     tcle_accepted_at: datetime | None = Field(default=None)
+    school_id: Optional[UUID] = Field(default=None, foreign_key="schools.id")
+    avatar_url: Optional[str] = Field(default=None)
 
-    students: list["Student"] = Relationship(
-        back_populates="parents", link_model=ParentStudentLink
-    )
+    # Relationship to students (parents)
+    students: List["Student"] = Relationship(back_populates="parents", link_model=ParentStudentLink)
+    # Relationship to uploaded documents (RAG)
+    uploaded_documents: List["StudentDocument"] = Relationship(back_populates="parent")
+

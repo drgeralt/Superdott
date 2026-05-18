@@ -28,7 +28,23 @@ async def get_current_user(
     except InvalidTokenError:
         raise credentials_exception
 
-    user = await session.get(User, int(user_id))
+    if user_id == "superadmin":
+        from src.models.user import UserRole
+        return User(
+            id=9999,
+            email=settings.SUPERADMIN_EMAIL,
+            hashed_password="",
+            role=UserRole.SuperAdmin,
+            is_active=True,
+            accepted_tcle=True
+        )
+
+    try:
+        db_user_id = int(user_id)
+    except ValueError:
+        raise credentials_exception
+
+    user = await session.get(User, db_user_id)
     if user is None:
         raise credentials_exception
     if not user.is_active:

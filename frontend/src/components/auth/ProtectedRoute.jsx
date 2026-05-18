@@ -5,7 +5,7 @@ import useAuthStore from '../../store/useAuthStore';
 const ProtectedRoute = ({ children, allowedRoles }) => {
     const user = useAuthStore(state => state.user);
     const initializeAuth = useAuthStore(state => state.initializeAuth);
-    const token = useAuthStore(state => state.token) || localStorage.getItem('superdott_token');
+    const token = useAuthStore(state => state.token);
 
     useEffect(() => {
         initializeAuth();

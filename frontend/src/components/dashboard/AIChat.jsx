@@ -35,7 +35,15 @@ const AIChat = () => {
             };
             // setTimeout resolve o erro de 'cascading render' apontado pelo ESLint
             setTimeout(() => {
-                setMessages(prev => [...prev, systemMsg]);
+                setMessages([
+                    {
+                        id: 'welcome',
+                        role: 'ai',
+                        text: 'Olá, Professor. Sou seu Assistente Pedagógico. Selecione um aluno na lista ao lado para iniciarmos uma análise baseada no banco de dados e das diretrizes do MEC.',
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    },
+                    systemMsg
+                ]);
             }, 0);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

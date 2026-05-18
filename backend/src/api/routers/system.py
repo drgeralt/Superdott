@@ -11,5 +11,6 @@ async def root():
 
 
 @router.get("/health")
-def health():
-    return {"status": "ok"}
+@router.head("/health")
+async def health_check():
+    return {"status": "healthy"}

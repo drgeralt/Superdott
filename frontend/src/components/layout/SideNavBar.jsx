@@ -137,7 +137,7 @@ const SideNavBar = () => {
                     <div className="p-4 border-t border-slate-50 bg-slate-50/50 shrink-0">
                         <div className="flex items-center gap-3 overflow-hidden mb-3">
                             <img 
-                                src={noUserPfp} 
+                                src={user.avatar_url ? user.avatar_url : noUserPfp} 
                                 alt="Perfil" 
                                 className="w-10 h-10 rounded-full object-cover shrink-0 border border-slate-200 shadow-sm" 
                             />

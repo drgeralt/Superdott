@@ -10,7 +10,7 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from datetime import datetime, timezone
 from typing import Optional
-
+from uuid import UUID
 from src.core.database import get_session
 from src.models.student import Student
 from src.models.user import User, UserRole
@@ -20,6 +20,7 @@ from src.api.services.audit_service import create_audit_log, AuditAction
 from src.api.services.pdi_service import PdiService
 from src.api.services.email_service import send_invitation_email
 from src.api.deps import get_current_user
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/students", tags=["Students"])
@@ -27,14 +28,92 @@ router = APIRouter(prefix="/api/students", tags=["Students"])
 
 @router.get("", response_model=list[Student])
 async def get_students(
+    school_id: Optional[UUID] = None,
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
     query = select(Student)
     if current_user.role == UserRole.Pai:
         query = query.join(ParentStudentLink).where(ParentStudentLink.parent_id == current_user.id)
+    elif current_user.role == UserRole.Professor:
+        from src.models.links import TeacherSchoolLink
+        # A professor can only see students belonging to the schools they are linked to
+        query = (
+            query.join(SchoolStudentLink, SchoolStudentLink.student_id == Student.id)
+            .join(TeacherSchoolLink, TeacherSchoolLink.school_id == SchoolStudentLink.school_id)
+            .where(TeacherSchoolLink.teacher_id == current_user.id)
+        )
+        if school_id:
+            query = query.where(SchoolStudentLink.school_id == school_id)
+    elif current_user.role == UserRole.Diretor and current_user.school_id:
+        query = query.join(SchoolStudentLink).where(SchoolStudentLink.school_id == current_user.school_id)
+    else:
+        if school_id:
+            query = query.join(SchoolStudentLink).where(SchoolStudentLink.school_id == school_id)
+
+    # Note: SuperAdmin sees all
+    
     result = await session.exec(query)
-    return result.all()
+    # Deduplicate in python if a student appears multiple times due to joins
+    students = result.all()
+    unique_students = {s.id: s for s in students}.values()
+    return list(unique_students)
+
+
+from pydantic import BaseModel
+
+class ParentAddStudentRequest(BaseModel):
+    full_name: str
+    email: str
+    turma: str | None = None
+
+@router.post("/parent-add", status_code=status.HTTP_201_CREATED)
+async def parent_add_student(
+    payload: ParentAddStudentRequest,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session)
+):
+    if current_user.role != UserRole.Pai:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Apenas pais ou responsáveis podem cadastrar filhos diretamente."
+        )
+
+    child_email = payload.email.strip().lower()
+    existing = await session.exec(select(Student).where(Student.email == child_email))
+    if existing.first():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Já existe um estudante cadastrado com este e-mail."
+        )
+
+    student = Student(
+        full_name=payload.full_name.strip(),
+        email=child_email,
+        turma=payload.turma.strip() if payload.turma else None,
+        triage_completed=False
+    )
+    session.add(student)
+    await session.flush()
+
+    # Link parent to student
+    parent_link = ParentStudentLink(
+        parent_id=current_user.id,
+        student_id=student.id
+    )
+    session.add(parent_link)
+    await session.commit()
+    await session.refresh(student)
+
+    return {
+        "message": "Filho cadastrado com sucesso!",
+        "student": {
+            "id": str(student.id),
+            "full_name": student.full_name,
+            "email": student.email,
+            "turma": student.turma
+        }
+    }
 
 
 @router.post("/{student_id}/link", status_code=status.HTTP_200_OK)
@@ -220,8 +299,15 @@ async def import_students_csv(
             detail=f"Não foi possível ler o arquivo CSV: {str(exc)}"
         )
 
+    # Detect delimiter: check the first line (e.g. support semicolon ';' from Excel)
+    delimiter = ","
+    lines = decoded.splitlines()
+    first_line = lines[0] if lines else ""
+    if ";" in first_line and first_line.count(";") > first_line.count(","):
+        delimiter = ";"
+
     # Use csv.DictReader to parse lines
-    reader = csv.DictReader(io.StringIO(decoded))
+    reader = csv.DictReader(io.StringIO(decoded), delimiter=delimiter)
     if not reader.fieldnames:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -336,7 +422,8 @@ async def import_students_csv(
                     code=code,
                     student_id=student.id,
                     email_responsavel=item["email_resp"],
-                    nome_responsavel=item["nome_resp"]
+                    nome_responsavel=item["nome_resp"],
+                    created_by=current_user.id
                 )
                 session.add(link_code)
 

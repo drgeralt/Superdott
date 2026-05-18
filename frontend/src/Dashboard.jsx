@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import useStudentStore from './store/useStudentStore';
 import useAuthStore from './store/useAuthStore';
 
 import DirectorDashboard from './components/dashboard/DirectorDashboard';
+import SuperAdminDashboard from './components/dashboard/SuperAdminDashboard';
 import TeacherDashboard from './components/dashboard/TeacherDashboard';
 import ParentDashboard from './components/dashboard/ParentDashboard';
 
@@ -19,41 +20,34 @@ const Dashboard = () => {
     const fetchStudents = useStudentStore(state => state.fetchStudents);
     const selectStudent = useStudentStore(state => state.selectStudent);
 
+    const loadDashboardSummary = useCallback(async () => {
+        setSummaryLoading(true);
+        setSummaryError(null);
+        try {
+            const token = localStorage.getItem('superdott_token');
+            const headers = {};
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+            const res = await fetch('/api/dashboard/summary', { headers });
+            if (!res.ok) throw new Error('Falha ao carregar sumário do dashboard');
+            const data = await res.json();
+            setSummaryData(data);
+            if (data.role === 'Pai' && data.recent_students?.length > 0) {
+                selectStudent(data.recent_students[0]);
+            }
+        } catch (err) {
+            setSummaryError(err.message || 'Erro de conexão.');
+        } finally {
+            setSummaryLoading(false);
+        }
+    }, [selectStudent]);
+
     useEffect(() => {
         initializeAuth();
-    }, [initializeAuth]);
-
-    useEffect(() => {
-        const loadDashboardSummary = async () => {
-            setSummaryLoading(true);
-            setSummaryError(null);
-            try {
-                const token = localStorage.getItem('superdott_token');
-                const headers = {};
-                if (token) {
-                    headers['Authorization'] = `Bearer ${token}`;
-                }
-                const res = await fetch('/api/dashboard/summary', { headers });
-                if (!res.ok) {
-                    throw new Error('Falha ao carregar sumário do dashboard');
-                }
-                const data = await res.json();
-                setSummaryData(data);
-                
-                // Se for pai, pré-seleciona o primeiro filho para instanciar o chat context
-                if (data.role === 'Pai' && data.recent_students?.length > 0) {
-                    selectStudent(data.recent_students[0]);
-                }
-            } catch (err) {
-                setSummaryError(err.message || 'Erro ao carregar dados do painel.');
-            } finally {
-                setSummaryLoading(false);
-            }
-        };
-
         loadDashboardSummary();
         fetchStudents();
-    }, [fetchStudents, selectStudent]);
+    }, [fetchStudents, loadDashboardSummary]);
 
     const renderDashboardContent = () => {
         if (summaryLoading) {
@@ -79,10 +73,12 @@ const Dashboard = () => {
 
         const role = user?.role || summaryData?.role;
 
-        if (role === 'Diretor' || role === 'SuperAdmin') {
+        if (role === 'SuperAdmin') {
+            return <SuperAdminDashboard data={summaryData} />;
+        } else if (role === 'Diretor') {
             return <DirectorDashboard data={summaryData} />;
         } else if (role === 'Pai') {
-            return <ParentDashboard data={summaryData} />;
+            return <ParentDashboard data={summaryData} refreshSummary={loadDashboardSummary} />;
         } else {
             return <TeacherDashboard />;
         }

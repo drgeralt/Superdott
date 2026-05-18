@@ -11,6 +11,7 @@ class Document(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     nome: str
     data_upload: datetime = Field(default_factory=datetime.utcnow)
+    school_id: uuid.UUID | None = Field(default=None, foreign_key="schools.id", nullable=True)
 
     chunks: list["DocumentChunk"] = Relationship(
         back_populates="document",

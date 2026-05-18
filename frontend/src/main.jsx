@@ -17,6 +17,16 @@ import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
 import MainLayout from './components/layout/MainLayout.jsx';
 import PlaceholderPage from './components/layout/PlaceholderPage.jsx';
 
+import Profile from './Profile.jsx';
+import SchoolManagement from './SchoolManagement.jsx';
+import Teachers from './Teachers.jsx';
+import AcademicLinks from './AcademicLinks.jsx';
+import MyStudents from './MyStudents.jsx';
+import PendingPDIs from './PendingPDIs.jsx';
+import MyChildren from './MyChildren.jsx';
+import ParentLinkCodes from './ParentLinkCodes.jsx';
+import GlobalMetrics from './GlobalMetrics.jsx';
+
 createRoot(document.getElementById('root')).render(
     <StrictMode>
         <BrowserRouter>
@@ -46,7 +56,7 @@ createRoot(document.getElementById('root')).render(
                 <Route path="/profile" element={
                     <ProtectedRoute>
                         <MainLayout>
-                            <PlaceholderPage />
+                            <Profile />
                         </MainLayout>
                     </ProtectedRoute>
                 } />
@@ -63,7 +73,7 @@ createRoot(document.getElementById('root')).render(
                 <Route path="/admin/metrics" element={
                     <ProtectedRoute allowedRoles={['SuperAdmin']}>
                         <MainLayout>
-                            <PlaceholderPage />
+                            <GlobalMetrics />
                         </MainLayout>
                     </ProtectedRoute>
                 } />
@@ -72,7 +82,7 @@ createRoot(document.getElementById('root')).render(
                 <Route path="/escola" element={
                     <ProtectedRoute allowedRoles={['Diretor']}>
                         <MainLayout>
-                            <PlaceholderPage />
+                            <SchoolManagement />
                         </MainLayout>
                     </ProtectedRoute>
                 } />
@@ -80,7 +90,7 @@ createRoot(document.getElementById('root')).render(
                 <Route path="/professores" element={
                     <ProtectedRoute allowedRoles={['Diretor']}>
                         <MainLayout>
-                            <PlaceholderPage />
+                            <Teachers />
                         </MainLayout>
                     </ProtectedRoute>
                 } />
@@ -96,7 +106,7 @@ createRoot(document.getElementById('root')).render(
                 <Route path="/vinculos" element={
                     <ProtectedRoute allowedRoles={['Diretor']}>
                         <MainLayout>
-                            <PlaceholderPage />
+                            <AcademicLinks />
                         </MainLayout>
                     </ProtectedRoute>
                 } />
@@ -105,7 +115,7 @@ createRoot(document.getElementById('root')).render(
                 <Route path="/alunos" element={
                     <ProtectedRoute allowedRoles={['Professor']}>
                         <MainLayout>
-                            <PlaceholderPage />
+                            <MyStudents />
                         </MainLayout>
                     </ProtectedRoute>
                 } />
@@ -113,7 +123,7 @@ createRoot(document.getElementById('root')).render(
                 <Route path="/pdis" element={
                     <ProtectedRoute allowedRoles={['Professor']}>
                         <MainLayout>
-                            <PlaceholderPage />
+                            <PendingPDIs />
                         </MainLayout>
                     </ProtectedRoute>
                 } />
@@ -122,7 +132,7 @@ createRoot(document.getElementById('root')).render(
                 <Route path="/filhos" element={
                     <ProtectedRoute allowedRoles={['Pai']}>
                         <MainLayout>
-                            <PlaceholderPage />
+                            <MyChildren />
                         </MainLayout>
                     </ProtectedRoute>
                 } />
@@ -130,7 +140,7 @@ createRoot(document.getElementById('root')).render(
                 <Route path="/codigos-vinculo" element={
                     <ProtectedRoute allowedRoles={['Pai']}>
                         <MainLayout>
-                            <PlaceholderPage />
+                            <ParentLinkCodes />
                         </MainLayout>
                     </ProtectedRoute>
                 } />

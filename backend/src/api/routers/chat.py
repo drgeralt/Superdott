@@ -111,23 +111,27 @@ async def chat_pedagogico(
         if not student:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Aluno não encontrado.")
 
+        # Obter escola vinculada ao aluno
+        school_link_res = await session.exec(
+            select(SchoolStudentLink).where(SchoolStudentLink.student_id == student.id)
+        )
+        school_link = school_link_res.first()
+        school_id = school_link.school_id if school_link else None
+
         chat_session = await _get_or_create_session(payload.student_id, current_user, session)
         history = await _get_recent_history(chat_session.id, session)
 
         # Anonimizar mensagem, contexto e histórico
         msg_anon = AnonymizationService.anonymize(payload.message, student.full_name)
         
-        ctx_anon = None
-        if payload.student_context:
-            import copy
-            ctx_anon = copy.deepcopy(payload.student_context)
-            if "name" in ctx_anon:
-                ctx_anon["name"] = AnonymizationService.anonymize(ctx_anon["name"], student.full_name)
-        else:
-            ctx_anon = {
-                "name": "[ALUNO]",
-                "scores": {"intelectual": 0, "criatividade": 0, "liderança": 0},
+        ctx_anon = {
+            "name": "[ALUNO]",
+            "scores": {
+                "Intelectual": round((student.score_intelectual or 0.0) / 10, 1),
+                "Criativo": round((student.score_criativo or 0.0) / 10, 1),
+                "Liderança": round((student.score_lideranca or 0.0) / 10, 1)
             }
+        }
 
         history_anon = [
             {
@@ -146,12 +150,14 @@ async def chat_pedagogico(
         session.add(user_msg)
         await session.commit()
 
-        # Consultar o RAG com dados anonimizados
+        # Consultar o RAG com dados anonimizados e filtro de escola
         rag_response = await ask(
             msg_anon,
             student_context=ctx_anon,
             history=history_anon,
             user_role=current_user.role,
+            school_id=school_id,
+            student_id=student.id,
         )
 
         # Reverter resposta
@@ -189,20 +195,27 @@ async def chat_stream(
     if not student:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Aluno não encontrado.")
 
+    # Obter escola vinculada ao aluno
+    school_link_res = await session.exec(
+        select(SchoolStudentLink).where(SchoolStudentLink.student_id == student.id)
+    )
+    school_link = school_link_res.first()
+    school_id = school_link.school_id if school_link else None
+
     chat_session = await _get_or_create_session(payload.student_id, current_user, session)
     history = await _get_recent_history(chat_session.id, session)
 
     # Anonimizar mensagem, contexto e histórico
     msg_anon = AnonymizationService.anonymize(payload.message, student.full_name)
     
-    ctx = payload.student_context or {
-        "name": "Aluno Padrão",
-        "scores": {"intelectual": 0, "criatividade": 0, "liderança": 0},
+    ctx_anon = {
+        "name": "[ALUNO]",
+        "scores": {
+            "Intelectual": round((student.score_intelectual or 0.0) / 10, 1),
+            "Criativo": round((student.score_criativo or 0.0) / 10, 1),
+            "Liderança": round((student.score_lideranca or 0.0) / 10, 1)
+        }
     }
-    import copy
-    ctx_anon = copy.deepcopy(ctx)
-    if "name" in ctx_anon:
-        ctx_anon["name"] = AnonymizationService.anonymize(ctx_anon["name"], student.full_name)
 
     history_anon = [
         {
@@ -231,6 +244,8 @@ async def chat_stream(
                 student_context=ctx_anon,
                 history=history_anon,
                 user_role=current_user.role,
+                school_id=school_id,
+                student_id=student.id,
             )
             async for token in _stream_deanonymizer(raw_stream, real_first_name):
                 accumulated.append(token)

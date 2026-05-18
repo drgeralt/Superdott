@@ -62,56 +62,30 @@ const DirectorDashboard = ({ data }) => {
                 </div>
             </div>
 
-            {/* Seções Adicionais e Atalhos */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                    <h3 className="font-headline font-bold text-lg text-primary-navy mb-4 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-teal-custom">settings</span>
-                        Gestão da Escola e Recursos
+            {/* Metas e Desempenho Real da Escola */}
+            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                <div>
+                    <h3 className="font-headline font-bold text-lg text-primary-navy mb-2 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-purple-600">tips_and_updates</span>
+                        Metas e Desempenho da Escola
                     </h3>
-                    <div className="space-y-3">
-                        <div className="flex justify-between items-center p-3.5 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer">
-                            <div className="flex items-center gap-3">
-                                <span className="material-symbols-outlined text-slate-500">manage_accounts</span>
-                                <span className="text-sm font-semibold text-slate-700">Vincular Professores</span>
-                            </div>
-                            <span className="material-symbols-outlined text-sm text-slate-400">arrow_forward_ios</span>
-                        </div>
-                        <div className="flex justify-between items-center p-3.5 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer">
-                            <div className="flex items-center gap-3">
-                                <span className="material-symbols-outlined text-slate-500">add_moderator</span>
-                                <span className="text-sm font-semibold text-slate-700">Configurações de Privacidade</span>
-                            </div>
-                            <span className="material-symbols-outlined text-sm text-slate-400">arrow_forward_ios</span>
-                        </div>
-                        <div className="flex justify-between items-center p-3.5 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer">
-                            <div className="flex items-center gap-3">
-                                <span className="material-symbols-outlined text-slate-500">bar_chart</span>
-                                <span className="text-sm font-semibold text-slate-700">Relatórios Consolidados</span>
-                            </div>
-                            <span className="material-symbols-outlined text-sm text-slate-400">arrow_forward_ios</span>
-                        </div>
-                    </div>
+                    <p className="text-xs text-slate-500 leading-relaxed font-semibold">
+                        Acompanhe o engajamento estratégico em tempo real. O Superdott agiliza a identificação e o desenvolvimento de potenciais em cada aluno da instituição.
+                    </p>
                 </div>
-
-                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
-                    <div>
-                        <h3 className="font-headline font-bold text-lg text-primary-navy mb-2 flex items-center gap-2">
-                            <span className="material-symbols-outlined text-purple-600">tips_and_updates</span>
-                            Metas e Desempenho
-                        </h3>
-                        <p className="text-xs text-slate-500 leading-relaxed">
-                            O Superdott incentiva a criação de planos individualizados com maior agilidade. Nossa meta atual de engajamento escolar é manter todos os alunos diagnosticados com PDIs atualizados trimestralmente.
-                        </p>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100">
+                    <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Alunos Ativos</span>
+                        <span className="text-xl font-headline font-black text-primary-navy">{total_students || 0}</span>
                     </div>
-                    <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
-                        <div>
-                            <span className="text-xs text-slate-400 block font-semibold">Eficiência no Diagnóstico</span>
-                            <span className="text-sm font-bold text-teal-custom block">94% acima da média nacional</span>
-                        </div>
-                        <div className="w-10 h-10 rounded-full bg-teal-custom/5 text-teal-custom flex items-center justify-center font-bold text-xs">
-                            +12%
-                        </div>
+                    <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Corpo Docente</span>
+                        <span className="text-xl font-headline font-black text-primary-navy">{active_teachers || 0} lecionando</span>
+                    </div>
+                    <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">PDIs Gerados no Mês</span>
+                        <span className="text-xl font-headline font-black text-teal-custom">{pdis_generated_month || 0} criados</span>
                     </div>
                 </div>
             </div>

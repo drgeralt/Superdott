@@ -82,7 +82,7 @@ const ImportStudents = () => {
 
         try {
             setUploadProgress(50);
-            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            const token = localStorage.getItem('superdott_token') || sessionStorage.getItem('superdott_token');
             const response = await fetch('/api/students/import-csv', {
                 method: 'POST',
                 headers: {

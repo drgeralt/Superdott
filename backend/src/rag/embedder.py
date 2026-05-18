@@ -16,7 +16,12 @@ def embed_document(text: str) -> list[float]:
         model=EMBEDDING_MODEL,
         contents=text,
     )
-    return result.embeddings[0].values
+    vector = result.embeddings[0].values
+    if len(vector) < EMBEDDING_DIM:
+        vector = vector + [0.0] * (EMBEDDING_DIM - len(vector))
+    elif len(vector) > EMBEDDING_DIM:
+        vector = vector[:EMBEDDING_DIM]
+    return vector
 
 
 def embed_query(text: str) -> list[float]:
@@ -27,4 +32,9 @@ def embed_query(text: str) -> list[float]:
         model=EMBEDDING_MODEL,
         contents=text,
     )
-    return result.embeddings[0].values
+    vector = result.embeddings[0].values
+    if len(vector) < EMBEDDING_DIM:
+        vector = vector + [0.0] * (EMBEDDING_DIM - len(vector))
+    elif len(vector) > EMBEDDING_DIM:
+        vector = vector[:EMBEDDING_DIM]
+    return vector

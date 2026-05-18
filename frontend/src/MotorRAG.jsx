@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 
 const MotorRAG = () => {
     const [documents, setDocuments] = useState([]);
+    const [schools, setSchools] = useState([]);
+    const [selectedSchoolId, setSelectedSchoolId] = useState('');
     const [file, setFile] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
@@ -9,25 +11,61 @@ const MotorRAG = () => {
     const [processingStep, setProcessingStep] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
+    
+    // School Creation State
+    const [showAddSchoolModal, setShowAddSchoolModal] = useState(false);
+    const [newSchoolName, setNewSchoolName] = useState('');
+    const [newSchoolAddress, setNewSchoolAddress] = useState('');
+    const [isCreatingSchool, setIsCreatingSchool] = useState(false);
+
+    // Delete Document State
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [docToDelete, setDocToDelete] = useState(null);
     const [loadingList, setLoadingList] = useState(false);
     
     const fileInputRef = useRef(null);
 
-    // Carregar a lista de documentos do servidor
-    const fetchDocuments = async () => {
-        setLoadingList(true);
+    // Carregar a lista de escolas do servidor
+    const fetchSchools = async () => {
         try {
-            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            const response = await fetch('/api/admin/knowledge-base', {
+            const token = localStorage.getItem('superdott_token') || sessionStorage.getItem('superdott_token');
+            const response = await fetch('/api/admin/knowledge-base/schools', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
 
             if (response.ok) {
-                const data = await response.ok ? await response.json() : [];
+                const data = await response.json();
+                setSchools(data || []);
+                if (data && data.length > 0 && !selectedSchoolId) {
+                    setSelectedSchoolId(data[0].id);
+                }
+            } else {
+                console.error('Falha ao carregar escolas:', response.status);
+            }
+        } catch (error) {
+            console.error('Erro ao carregar escolas:', error);
+        }
+    };
+
+    // Carregar a lista de documentos do servidor
+    const fetchDocuments = async (schoolId = selectedSchoolId) => {
+        setLoadingList(true);
+        try {
+            const token = localStorage.getItem('superdott_token') || sessionStorage.getItem('superdott_token');
+            let url = '/api/admin/knowledge-base';
+            if (schoolId && schoolId !== 'global') {
+                url += `?school_id=${schoolId}`;
+            }
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
                 setDocuments(Array.isArray(data) ? data : []);
             } else {
                 console.error('Falha ao carregar documentos:', response.status);
@@ -40,8 +78,12 @@ const MotorRAG = () => {
     };
 
     useEffect(() => {
-        fetchDocuments();
+        fetchSchools();
     }, []);
+
+    useEffect(() => {
+        fetchDocuments(selectedSchoolId);
+    }, [selectedSchoolId]);
 
     const handleDragOver = (e) => {
         e.preventDefault();
@@ -89,6 +131,51 @@ const MotorRAG = () => {
         fileInputRef.current.click();
     };
 
+    // Criar Nova Escola
+    const handleCreateSchool = async (e) => {
+        e.preventDefault();
+        if (!newSchoolName) return;
+
+        setIsCreatingSchool(true);
+        setErrorMsg('');
+        setSuccessMsg('');
+
+        try {
+            const token = localStorage.getItem('superdott_token') || sessionStorage.getItem('superdott_token');
+            const response = await fetch('/api/admin/knowledge-base/schools', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: newSchoolName,
+                    address: newSchoolAddress
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setSuccessMsg(`Escola "${newSchoolName}" criada com sucesso!`);
+                setNewSchoolName('');
+                setNewSchoolAddress('');
+                setShowAddSchoolModal(false);
+                await fetchSchools();
+                if (data && data.school) {
+                    setSelectedSchoolId(data.school.id);
+                }
+            } else {
+                const errData = await response.json();
+                setErrorMsg(errData.detail || 'Falha ao criar escola.');
+            }
+        } catch (error) {
+            console.error('Erro ao criar escola:', error);
+            setErrorMsg('Erro de conexão ao criar escola.');
+        } finally {
+            setIsCreatingSchool(false);
+        }
+    };
+
     // Iniciar o upload e vetorização
     const handleUpload = async () => {
         if (!file) return;
@@ -105,7 +192,7 @@ const MotorRAG = () => {
         formData.append('file', file);
 
         try {
-            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            const token = localStorage.getItem('superdott_token') || sessionStorage.getItem('superdott_token');
             
             setTimeout(() => {
                 setUploadProgress(40);
@@ -117,7 +204,12 @@ const MotorRAG = () => {
                 setProcessingStep('Vetorizando blocos com Google Gemini...');
             }, 2000);
 
-            const response = await fetch('/api/admin/knowledge-base/upload', {
+            let url = '/api/admin/knowledge-base/upload';
+            if (selectedSchoolId && selectedSchoolId !== 'global') {
+                url += `?school_id=${selectedSchoolId}`;
+            }
+
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -151,7 +243,7 @@ const MotorRAG = () => {
             setFile(null);
             
             // Recarregar lista
-            fetchDocuments();
+            fetchDocuments(selectedSchoolId);
         } catch (error) {
             console.error('Erro no upload vetorial:', error);
             setErrorMsg('Erro de conexão. Não foi possível falar com o servidor RAG.');
@@ -174,7 +266,7 @@ const MotorRAG = () => {
         if (!docToDelete) return;
 
         try {
-            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            const token = localStorage.getItem('superdott_token') || sessionStorage.getItem('superdott_token');
             const response = await fetch(`/api/admin/knowledge-base/${docToDelete.id}`, {
                 method: 'DELETE',
                 headers: {
@@ -184,7 +276,7 @@ const MotorRAG = () => {
 
             if (response.ok) {
                 setSuccessMsg(`O documento "${docToDelete.nome}" foi removido com sucesso.`);
-                fetchDocuments();
+                fetchDocuments(selectedSchoolId);
             } else {
                 const errData = await response.json();
                 setErrorMsg(errData.detail || 'Erro ao tentar deletar o documento.');
@@ -216,16 +308,45 @@ const MotorRAG = () => {
     return (
         <div className="max-w-5xl mx-auto py-10 px-6 font-sans">
             {/* Header Glassmorphism */}
-            <div className="mb-10 text-left">
-                <span className="inline-block px-3 py-1 bg-teal-custom/10 text-teal-custom font-semibold text-xs rounded-full uppercase tracking-wider mb-3">
-                    Painel do SuperAdmin
-                </span>
-                <h1 className="text-3xl font-extrabold text-primary-navy tracking-tight mb-2">
-                    Base de Conhecimento RAG
-                </h1>
-                <p className="text-slate-500 text-sm max-w-2xl">
-                    Gerencie a base de dados jurídica e pedagógica oficial consultada pela IA. Faça upload de novas cartilhas do MEC ou remova as obsoletas para atualizar o comportamento do chat imediatamente.
-                </p>
+            <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-100 pb-8">
+                <div className="text-left">
+                    <span className="inline-block px-3 py-1 bg-teal-custom/10 text-teal-custom font-semibold text-xs rounded-full uppercase tracking-wider mb-3">
+                        Configurações de RAG Multi-Escola
+                    </span>
+                    <h1 className="text-3xl font-extrabold text-primary-navy tracking-tight mb-2">
+                        Base de Conhecimento RAG
+                    </h1>
+                    <p className="text-slate-500 text-sm max-w-2xl">
+                        Faça upload de documentos dinâmicos para treinar a inteligência artificial. Cada escola possui um banco de dados totalmente privado e isolado.
+                    </p>
+                </div>
+
+                {/* Seletor de Escolas Customizado */}
+                <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex flex-col text-left">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Escola Selecionada</label>
+                        <select
+                            value={selectedSchoolId}
+                            onChange={(e) => setSelectedSchoolId(e.target.value)}
+                            className="bg-white border border-slate-200 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl shadow-sm focus:border-teal-custom focus:ring-1 focus:ring-teal-custom outline-none transition-all cursor-pointer min-w-[200px]"
+                        >
+                            <option value="global">Global / MEC (Padrão)</option>
+                            {schools.map((school) => (
+                                <option key={school.id} value={school.id}>
+                                    🏫 {school.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <button
+                        onClick={() => setShowAddSchoolModal(true)}
+                        className="mt-5 p-2.5 bg-teal-custom/10 hover:bg-teal-custom/20 text-teal-custom rounded-xl transition-all flex items-center justify-center shrink-0 shadow-sm"
+                        title="Adicionar Nova Escola"
+                    >
+                        <span className="material-symbols-outlined text-xl">add_home</span>
+                    </button>
+                </div>
             </div>
 
             {/* Painel de Estatísticas */}
@@ -235,7 +356,7 @@ const MotorRAG = () => {
                         <span className="material-symbols-outlined text-2xl">auto_stories</span>
                     </span>
                     <div>
-                        <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Documentos Ingeridos</p>
+                        <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Documentos na Escola Atual</p>
                         <p className="text-2xl font-extrabold text-slate-800">{documents.length}</p>
                     </div>
                 </div>
@@ -320,7 +441,7 @@ const MotorRAG = () => {
 
                         {/* Mensagem de Erro */}
                         {errorMsg && (
-                            <div className="mt-4 p-3 bg-rose-50 border border-rose-100 rounded-xl text-rose-600 text-[10px] font-semibold flex items-start gap-2">
+                            <div className="mt-4 p-3 bg-rose-50 border border-rose-100 rounded-xl text-rose-600 text-[10px] font-semibold flex items-start gap-2 animate-fadeIn">
                                 <span className="material-symbols-outlined text-rose-500 text-base shrink-0">error</span>
                                 <span>{errorMsg}</span>
                             </div>
@@ -328,7 +449,7 @@ const MotorRAG = () => {
 
                         {/* Mensagem de Sucesso */}
                         {successMsg && (
-                            <div className="mt-4 p-3 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-600 text-[10px] font-semibold flex items-start gap-2">
+                            <div className="mt-4 p-3 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-600 text-[10px] font-semibold flex items-start gap-2 animate-fadeIn">
                                 <span className="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span>
                                 <span>{successMsg}</span>
                             </div>
@@ -373,9 +494,9 @@ const MotorRAG = () => {
                         ) : documents.length === 0 ? (
                             <div className="py-12 text-center border border-dashed border-slate-100 rounded-xl">
                                 <span className="material-symbols-outlined text-3xl text-slate-300 mb-2">find_in_page</span>
-                                <p className="text-slate-500 font-bold text-xs mb-1">Nenhum documento dinâmico indexado</p>
+                                <p className="text-slate-500 font-bold text-xs mb-1">Nenhum documento dinâmico indexado nesta escola</p>
                                 <p className="text-slate-400 text-[10px] max-w-xs mx-auto">
-                                    A base está usando apenas os arquivos padrão de seed do sistema. Adicione novos PDFs oficiais ao lado!
+                                    Esta escola está utilizando apenas os arquivos padrões do sistema. Adicione novos PDFs oficiais ao lado!
                                 </p>
                             </div>
                         ) : (
@@ -426,6 +547,62 @@ const MotorRAG = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Modal de Criação de Escola */}
+            {showAddSchoolModal && (
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <form onSubmit={handleCreateSchool} className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl border border-slate-100 animate-scaleUp">
+                        <div className="flex items-center gap-3 mb-4">
+                            <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-teal-custom/10 text-teal-custom">
+                                <span className="material-symbols-outlined text-xl">add_home</span>
+                            </span>
+                            <h4 className="font-bold text-slate-800 text-sm">Criar Nova Escola</h4>
+                        </div>
+                        
+                        <div className="space-y-4 mb-6">
+                            <div>
+                                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Nome da Escola</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={newSchoolName}
+                                    onChange={(e) => setNewSchoolName(e.target.value)}
+                                    placeholder="Ex: Colégio Dom Pedro II"
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-xs py-2.5 px-4 rounded-xl outline-none focus:border-teal-custom focus:bg-white transition-all"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Endereço (Opcional)</label>
+                                <input
+                                    type="text"
+                                    value={newSchoolAddress}
+                                    onChange={(e) => setNewSchoolAddress(e.target.value)}
+                                    placeholder="Ex: Av. Copacabana, 123"
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-xs py-2.5 px-4 rounded-xl outline-none focus:border-teal-custom focus:bg-white transition-all"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                                type="button"
+                                onClick={() => { setShowAddSchoolModal(false); setNewSchoolName(''); setNewSchoolAddress(''); }}
+                                className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] rounded-xl transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={isCreatingSchool}
+                                className="flex-1 px-4 py-2.5 bg-[linear-gradient(135deg,#0C2C47_0%,#4A9D95_100%)] text-white font-bold text-[10px] rounded-xl transition-colors shadow-sm disabled:opacity-50"
+                            >
+                                {isCreatingSchool ? 'Criando...' : 'Salvar Escola'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
 
             {/* Modal de Confirmação de Exclusão */}
             {showDeleteModal && (

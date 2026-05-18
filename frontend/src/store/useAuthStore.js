@@ -13,10 +13,28 @@ const decodeToken = (token) => {
     }
 };
 
-const useAuthStore = create((set) => ({
+const useAuthStore = create((set, get) => ({
     user: null,
     token: localStorage.getItem('superdott_token'),
     isSidebarCollapsed: false,
+
+    fetchProfile: async () => {
+        const token = get().token;
+        if (!token) return;
+        try {
+            const res = await fetch('/api/profile', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                set((state) => ({
+                    user: state.user ? { ...state.user, ...data } : data
+                }));
+            }
+        } catch (err) {
+            console.error('Failed to fetch profile in store:', err);
+        }
+    },
 
     initializeAuth: () => {
         const token = localStorage.getItem('superdott_token');
@@ -24,7 +42,10 @@ const useAuthStore = create((set) => ({
             const decoded = decodeToken(token);
             if (decoded) {
                 set({ user: { id: decoded.sub, role: decoded.role }, token });
+                get().fetchProfile();
                 return;
+            } else {
+                localStorage.removeItem('superdott_token');
             }
         }
         set({ user: null, token: null });
@@ -35,6 +56,7 @@ const useAuthStore = create((set) => ({
             localStorage.setItem('superdott_token', token);
             const decoded = decodeToken(token);
             set({ user: decoded ? { id: decoded.sub, role: decoded.role } : null, token });
+            get().fetchProfile();
         } else {
             localStorage.removeItem('superdott_token');
             set({ user: null, token: null });
