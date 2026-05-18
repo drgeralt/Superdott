@@ -62,3 +62,31 @@ def test_prompt_com_perfil_aluno_contem_scores():
     """Com perfil do aluno, o prompt deve conter os scores."""
     prompt = build_prompt(question=PERGUNTA, chunks=CHUNKS, student_context=PERFIL_ALUNO)
     assert "criatividade" in prompt.lower() or "9" in prompt
+
+
+def test_prompt_especializado_pai():
+    """Deve utilizar o PROMPT_PARENT para o perfil de Pai."""
+    from src.models.user import UserRole
+    prompt = build_prompt(question=PERGUNTA, chunks=CHUNKS, user_role=UserRole.Pai)
+    assert "falando diretamente com um Pai/Mãe/Responsável" in prompt
+    assert "[PAI/MÃE]" not in prompt # Sender only in history
+
+
+def test_prompt_especializado_professor():
+    """Deve utilizar o PROMPT_TEACHER para o perfil de Professor."""
+    from src.models.user import UserRole
+    prompt = build_prompt(question=PERGUNTA, chunks=CHUNKS, user_role=UserRole.Professor)
+    assert "falando diretamente com um Professor" in prompt
+
+
+def test_prompt_especializado_diretor():
+    """Deve utilizar o PROMPT_PRINCIPAL para o perfil de Diretor."""
+    from src.models.user import UserRole
+    prompt = build_prompt(question=PERGUNTA, chunks=CHUNKS, user_role=UserRole.Diretor)
+    assert "falando diretamente com um Diretor / Gestor Escolar" in prompt
+
+
+def test_prompt_especializado_default():
+    """Deve utilizar o SYSTEM_PROMPT padrão quando a role não é fornecida."""
+    prompt = build_prompt(question=PERGUNTA, chunks=CHUNKS)
+    assert "Você é o Assistente Pedagógico Superdott, especialista em Altas Habilidades" in prompt

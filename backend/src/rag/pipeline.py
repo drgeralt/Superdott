@@ -5,6 +5,7 @@ from google import genai
 from src.core.config import settings
 from src.rag.prompt import build_prompt
 from src.rag.retriever import retrieve
+from src.models.user import UserRole
 
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
@@ -26,6 +27,7 @@ async def ask(
     history: list[dict] | None = None,
     top_k: int = 5,
     similarity_threshold: float = 0.5,
+    user_role: UserRole | None = None,
 ) -> RAGResponse:
 
     try:
@@ -37,7 +39,13 @@ async def ask(
         # 2. Gera resposta
         response = client.models.generate_content(
             model=GENERATION_MODEL,
-            contents=build_prompt(question, chunks, student_context),
+            contents=build_prompt(
+                question=question,
+                chunks=chunks,
+                student_context=student_context,
+                history=history,
+                user_role=user_role,
+            ),
         )
 
         return RAGResponse(
@@ -56,6 +64,7 @@ async def ask_stream(
     history: list[dict] | None = None,
     top_k: int = 5,
     similarity_threshold: float = 0.5,
+    user_role: UserRole | None = None,
 ):
     chunks = await retrieve(
         question=question,
@@ -68,6 +77,7 @@ async def ask_stream(
         chunks=chunks,
         student_context=student_context,
         history=history,
+        user_role=user_role,
     )
 
     response = client.models.generate_content_stream(
