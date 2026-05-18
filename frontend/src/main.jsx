@@ -7,6 +7,7 @@ import LandingPage from './LandingPage.jsx';
 import Login from './Login.jsx';
 import Dashboard from './Dashboard.jsx';
 import Triage from './Triage.jsx';
+import FreeTriage from './FreeTriage.jsx';
 import Register from './Register.jsx';
 import TriagePLG from './TriagePLG.jsx';
 import ImportStudents from './ImportStudents.jsx';
@@ -24,6 +25,7 @@ createRoot(document.getElementById('root')).render(
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/triagem-plg" element={<TriagePLG />} />
+                <Route path="/triagemgratuita" element={<FreeTriage />} />
 
                 {/* Rotas Privadas e Protegidas (RBAC) */}
                 <Route path="/dashboard" element={
@@ -131,7 +133,6 @@ createRoot(document.getElementById('root')).render(
                         </MainLayout>
                     </ProtectedRoute>
                 } />
-
             </Routes>
         </BrowserRouter>
     </StrictMode>
