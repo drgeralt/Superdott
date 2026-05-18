@@ -1,0 +1,119 @@
+{
+  "test_metadata": {
+    "title": "Triagem Cognitiva Superdott",
+    "version": "1.0",
+    "max_score": 30
+  },
+  "questions": [
+    {
+      "id": "q1_verbal_1",
+      "domain": "Compreensão Verbal",
+      "text": "Como é o vocabulário e a capacidade de argumentação da criança comparada a outras da mesma idade?",
+      "options": [
+        { "text": "Abaixo da média ou apresenta dificuldades.", "score": 0 },
+        { "text": "Na média esperada para a idade.", "score": 1 },
+        { "text": "Avançado. Usa palavras complexas e articula bem as ideias.", "score": 2 },
+        { "text": "Muito superior. Fala como um 'pequeno adulto'.", "score": 3 }
+      ]
+    },
+    {
+      "id": "q2_verbal_2",
+      "domain": "Compreensão Verbal",
+      "text": "A criança costuma fazer perguntas profundas ou inusitadas sobre o funcionamento do mundo, vida, morte ou o universo?",
+      "options": [
+        { "text": "Raramente ou nunca.", "score": 0 },
+        { "text": "Às vezes, dentro do comum para a idade.", "score": 1 },
+        { "text": "Frequentemente faz perguntas que me deixam sem resposta.", "score": 2 },
+        { "text": "Constantemente. A curiosidade intelectual dela parece insaciável.", "score": 3 }
+      ]
+    },
+    {
+      "id": "q3_visuoespacial_1",
+      "domain": "Visuoespacial",
+      "text": "Como a criança lida com quebra-cabeças, blocos de montar (Lego) ou montagem de objetos geométricos?",
+      "options": [
+        { "text": "Não tem interesse ou tem dificuldade.", "score": 0 },
+        { "text": "Monta coisas simples seguindo o manual.", "score": 1 },
+        { "text": "Monta estruturas complexas rapidamente e sem manual.", "score": 2 },
+        { "text": "Cria estruturas tridimensionais altamente complexas e detalhadas a partir do zero.", "score": 3 }
+      ]
+    },
+    {
+      "id": "q4_fluido_1",
+      "domain": "Raciocínio Fluido",
+      "text": "Em jogos de estratégia (xadrez, damas, videogames complexos) ou na resolução de problemas novos, como ela se sai?",
+      "options": [
+        { "text": "Precisa de muita ajuda para entender as regras.", "score": 0 },
+        { "text": "Aprende no ritmo normal, por tentativa e erro.", "score": 1 },
+        { "text": "Entende as lógicas ocultas rapidamente e vence pessoas mais velhas.", "score": 2 },
+        { "text": "Cria as próprias estratégias avançadas e antecipa várias jogadas do oponente.", "score": 3 }
+      ]
+    },
+    {
+      "id": "q5_fluido_2",
+      "domain": "Raciocínio Fluido",
+      "text": "Ela consegue identificar padrões lógicos que outras pessoas não percebem (em números, comportamentos, na natureza)?",
+      "options": [
+        { "text": "Não costuma notar padrões.", "score": 0 },
+        { "text": "Nota padrões simples e evidentes.", "score": 1 },
+        { "text": "Identifica conexões entre assuntos que parecem não ter relação.", "score": 2 },
+        { "text": "Possui uma capacidade quase intuitiva para deduzir lógicas matemáticas ou comportamentais.", "score": 3 }
+      ]
+    },
+    {
+      "id": "q6_memoria_1",
+      "domain": "Memória Operacional",
+      "text": "Se você der uma lista de 4 ou mais instruções verbais seguidas, como a criança reage?",
+      "options": [
+        { "text": "Esquece ou se perde após a primeira instrução.", "score": 0 },
+        { "text": "Consegue seguir se não houver distrações.", "score": 1 },
+        { "text": "Guarda todas as instruções na cabeça e executa com facilidade.", "score": 2 },
+        { "text": "Além de executar, otimiza a ordem das tarefas mentalmente antes de fazer.", "score": 3 }
+      ]
+    },
+    {
+      "id": "q7_memoria_2",
+      "domain": "Memória Operacional",
+      "text": "Como é a capacidade dela para reter detalhes específicos (cálculos mentais de cabeça, falas de filmes, fatos históricos)?",
+      "options": [
+        { "text": "Esquece informações com facilidade.", "score": 0 },
+        { "text": "Lembra do que gosta, dentro da média.", "score": 1 },
+        { "text": "Tem uma memória fotográfica ou numérica muito acima da média.", "score": 2 },
+        { "text": "É uma 'enciclopédia ambulante' sobre seus temas de hiperfoco.", "score": 3 }
+      ]
+    },
+    {
+      "id": "q8_processamento_1",
+      "domain": "Velocidade de Processamento",
+      "text": "Quando a criança está focada em algo do próprio interesse, qual o ritmo de compreensão e execução mental?",
+      "options": [
+        { "text": "Mais lento, precisa de tempo para absorver.", "score": 0 },
+        { "text": "Normal, acompanha a turma.", "score": 1 },
+        { "text": "Muito rápido, 'pega as coisas no ar'.", "score": 2 },
+        { "text": "Extremamente veloz, frequentemente terminando muito antes que os outros sequer comecem.", "score": 3 }
+      ]
+    },
+    {
+      "id": "q9_comportamento_1",
+      "domain": "Assincronia Emocional",
+      "text": "Como ela lida com a convivência com crianças da mesma idade e com regras que ela considera 'injustas'?",
+      "options": [
+        { "text": "Interage bem e aceita regras facilmente.", "score": 0 },
+        { "text": "Tem atritos normais da idade.", "score": 1 },
+        { "text": "Prefere conversar com adultos e questiona intensamente a lógica das regras.", "score": 2 },
+        { "text": "Sente-se alienada dos colegas da mesma idade e sofre profundamente com injustiças sociais ou globais.", "score": 3 }
+      ]
+    },
+    {
+      "id": "q10_comportamento_2",
+      "domain": "Hiperfoco",
+      "text": "Quando a criança desenvolve interesse por um assunto específico (dinossauros, astronomia, programação), como ela age?",
+      "options": [
+        { "text": "Interessa-se brevemente e logo muda de foco.", "score": 0 },
+        { "text": "Gosta de brincar sobre o tema, como qualquer criança.", "score": 1 },
+        { "text": "Mergulha no tema, lendo livros e consumindo conteúdo avançado.", "score": 2 },
+        { "text": "Torna-se obcecada a ponto de esquecer necessidades básicas (comer, dormir) e domina o assunto em nível acadêmico.", "score": 3 }
+      ]
+    }
+  ]
+}
