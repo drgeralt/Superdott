@@ -16,6 +16,7 @@ const decodeToken = (token) => {
 const useAuthStore = create((set) => ({
     user: null,
     token: localStorage.getItem('superdott_token'),
+    isSidebarCollapsed: false,
 
     initializeAuth: () => {
         const token = localStorage.getItem('superdott_token');
@@ -43,7 +44,9 @@ const useAuthStore = create((set) => ({
     logout: () => {
         localStorage.removeItem('superdott_token');
         set({ user: null, token: null });
-    }
+    },
+
+    toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed }))
 }));
 
 export default useAuthStore;

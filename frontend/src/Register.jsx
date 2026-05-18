@@ -301,7 +301,7 @@ const Register = () => {
                         <div className="mt-8 pt-6 border-t border-slate-100 text-center">
                             <p className="text-xs text-on-surface-variant">
                                 Já possui uma conta?
-                                <a className="text-primary-navy ml-1 font-bold hover:underline decoration-2 underline-offset-4 cursor-pointer" onClick={() => navigate('/')}>
+                                <a className="text-primary-navy ml-1 font-bold hover:underline decoration-2 underline-offset-4 cursor-pointer" onClick={() => navigate('/login')}>
                                     Fazer Login
                                 </a>
                             </p>

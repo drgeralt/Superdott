@@ -1,3 +1,4 @@
+import React from 'react';
 import { Link } from 'react-router-dom';
 import CurvedLoop from './components/landingpage/CurvedLoop';
 import Antigravity from './components/landingpage/Antigravity';
@@ -12,14 +13,15 @@ const LandingPage = () => {
     return (
         <div className="text-primary-navy selection:bg-mint-light selection:text-teal-custom overflow-x-hidden font-body bg-slate-50">
 
+            {/* Navbar */}
             <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100 transition-all duration-200">
                 <div className="flex justify-between items-center px-8 py-5 max-w-[1440px] mx-auto">
                     <div className="flex items-center gap-12">
                         <div className="font-headline font-black text-3xl tracking-tighter text-primary-navy">Superdott .</div>
                         <div className="hidden md:flex gap-8 items-center">
-                            <a className="text-slate-500 font-medium hover:text-teal-custom transition-colors duration-300 font-headline font-bold tracking-tight text-sm uppercase" href="#como-funciona">Como funciona</a>
-                            <a className="text-slate-500 font-medium hover:text-teal-custom transition-colors duration-300 font-headline font-bold tracking-tight text-sm uppercase" href="#para-quem-serve">Para quem serve</a>
-                            <a className="text-slate-500 font-medium hover:text-teal-custom transition-colors duration-300 font-headline font-bold tracking-tight text-sm uppercase" href="#beneficios">Benefícios</a>
+                            <a className="text-slate-500 hover:text-teal-custom transition-colors duration-300 font-headline font-bold tracking-tight text-sm uppercase" href="#como-funciona">Como funciona</a>
+                            <a className="text-slate-500 hover:text-teal-custom transition-colors duration-300 font-headline font-bold tracking-tight text-sm uppercase" href="#para-quem-serve">Para quem serve</a>
+                            <a className="text-slate-500 hover:text-teal-custom transition-colors duration-300 font-headline font-bold tracking-tight text-sm uppercase" href="#beneficios">Benefícios</a>
                         </div>
                     </div>
                     <Link to="/login" className="transition-all duration-200 hover:scale-105 active:scale-95 bg-primary-navy text-white px-6 py-2.5 rounded-full font-headline font-semibold text-sm shadow-lg shadow-primary-navy/20 flex items-center gap-2">
@@ -60,10 +62,10 @@ const LandingPage = () => {
                             Identifique a superdotação em sua casa ou escola.
                         </h1>
                         <p className="font-body text-lg md:text-xl text-slate-500 max-w-3xl mx-auto leading-relaxed mb-12">
-                            Uma plataforma dedicada a escolas, professores e famílias para realizar análises inteligentes, relatórios consolidados e Planos de Desenvolvimento Individualizados (PDI) de forma 100% segura e anônima.
+                            Uma plataforma SaaS dedicada a escolas, professores e famílias para realizar análises inteligentes, relatórios consolidados e Planos de Desenvolvimento Individualizados (PDI) de forma 100% segura e anônima.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-                            <Link to="/triagemgratuita" className="pointer-events-auto bg-gradient-to-br from-primary-navy to-teal-custom text-white px-10 py-4 rounded-full font-headline font-bold text-lg hover:shadow-lg hover:shadow-primary-navy/30 transition-all duration-300 active:scale-95 flex items-center gap-2">
+                            <Link to="/triagem-plg" className="pointer-events-auto bg-gradient-to-br from-primary-navy to-teal-custom text-white px-10 py-4 rounded-full font-headline font-bold text-lg hover:shadow-lg hover:shadow-primary-navy/30 transition-all duration-300 active:scale-95 flex items-center gap-2">
                                 Faça uma Triagem Rápida
                                 <ArrowUpRight className="w-5 h-5" strokeWidth={2.5} />
                             </Link>
@@ -86,7 +88,7 @@ const LandingPage = () => {
                     />
                 </section>
 
-                {/* flow Section */}
+                {/* Como Funciona Section */}
                 <section className="py-32 bg-white overflow-hidden border-t border-slate-100 scroll-mt-28" id="como-funciona">
                     <div className="max-w-[1440px] mx-auto px-8 relative">
                         <div className="mb-24 text-center max-w-3xl mx-auto">
@@ -97,7 +99,6 @@ const LandingPage = () => {
                         <div className="relative flex flex-col md:flex-row justify-between items-start gap-16 md:gap-0">
                             <div className="hidden md:block absolute top-10 left-12 w-[calc(100%-6rem)] h-0.5 bg-slate-100 z-0"></div>
 
-                            {/* Step 1 */}
                             <div className="relative z-10 w-full md:w-1/3 flex flex-col items-center md:items-start group px-4">
                                 <div className="w-20 h-20 bg-mint-light rounded-full flex items-center justify-center mb-6 border-4 border-white shadow-sm transition-transform duration-500 group-hover:scale-110">
                                     <span className="font-headline font-black text-2xl text-teal-custom">1</span>
@@ -108,7 +109,6 @@ const LandingPage = () => {
                                 </p>
                             </div>
 
-                            {/* Step 2 */}
                             <div className="relative z-10 w-full md:w-1/3 flex flex-col items-center md:items-start group px-4">
                                 <div className="w-20 h-20 bg-mint-light rounded-full flex items-center justify-center mb-6 border-4 border-white shadow-sm transition-transform duration-500 group-hover:scale-110">
                                     <span className="font-headline font-black text-2xl text-teal-custom">2</span>
@@ -119,7 +119,6 @@ const LandingPage = () => {
                                 </p>
                             </div>
 
-                            {/* Step 3 */}
                             <div className="relative z-10 w-full md:w-1/3 flex flex-col items-center md:items-start group px-4">
                                 <div className="w-20 h-20 bg-mint-light rounded-full flex items-center justify-center mb-6 border-4 border-white shadow-sm transition-transform duration-500 group-hover:scale-110">
                                     <span className="font-headline font-black text-2xl text-teal-custom">3</span>
@@ -142,7 +141,6 @@ const LandingPage = () => {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
 
-                            {/* Audience 1: Escolas */}
                             <div className="p-10 bg-white rounded-3xl border border-slate-100 shadow-sm group hover:shadow-xl hover:-translate-y-2 transition-all duration-500">
                                 <div className="mb-6 inline-block px-3 py-1 bg-slate-100 text-slate-500 font-headline font-bold text-[10px] tracking-widest uppercase rounded-full">
                                     Gestão Institucional
@@ -161,7 +159,6 @@ const LandingPage = () => {
                                 </ul>
                             </div>
 
-                            {/* Audience 2: Professores */}
                             <div className="p-10 bg-white rounded-3xl border border-slate-100 shadow-sm group hover:shadow-xl hover:-translate-y-2 transition-all duration-500">
                                 <div className="mb-6 inline-block px-3 py-1 bg-slate-100 text-slate-500 font-headline font-bold text-[10px] tracking-widest uppercase rounded-full">
                                     Prática Pedagógica
@@ -179,7 +176,6 @@ const LandingPage = () => {
                                 </ul>
                             </div>
 
-                            {/* Audience 3: Pais */}
                             <div className="p-10 bg-white rounded-3xl border border-slate-100 shadow-sm group hover:shadow-xl hover:-translate-y-2 transition-all duration-500">
                                 <div className="mb-6 inline-block px-3 py-1 bg-slate-100 text-slate-500 font-headline font-bold text-[10px] tracking-widest uppercase rounded-full">
                                     Suporte Afetivo
@@ -219,7 +215,6 @@ const LandingPage = () => {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                            {/* Card CTA Pais */}
                             <div className="p-10 bg-slate-50 rounded-3xl border border-slate-200 flex flex-col justify-between items-start group hover:border-teal-custom/30 transition-colors">
                                 <div>
                                     <h4 className="font-headline font-black text-2xl text-primary-navy mb-4">Sou Pai ou Responsável</h4>
@@ -227,12 +222,11 @@ const LandingPage = () => {
                                         Quero iniciar uma triagem de altas habilidades do meu filho para obter orientações e vincular o perfil com a instituição de ensino.
                                     </p>
                                 </div>
-                                <Link to="/triagemgratuita" className="w-full bg-primary-navy text-white px-8 py-4 rounded-xl font-headline font-bold text-center hover:bg-teal-custom transition-colors">
+                                <Link to="/triagem-plg" className="w-full bg-primary-navy text-white px-8 py-4 rounded-xl font-headline font-bold text-center hover:bg-teal-custom transition-colors">
                                     Iniciar como Responsável
                                 </Link>
                             </div>
 
-                            {/* Card CTA Escola */}
                             <div className="p-10 bg-slate-50 rounded-3xl border border-slate-200 flex flex-col justify-between items-start group hover:border-teal-custom/30 transition-colors">
                                 <div>
                                     <h4 className="font-headline font-black text-2xl text-primary-navy mb-4">Sou Escola ou Diretor</h4>
