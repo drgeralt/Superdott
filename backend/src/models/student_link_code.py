@@ -18,14 +18,15 @@ def _expiracao_padrao() -> datetime:
     return datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(hours=48)
 
 
-
 class StudentLinkCode(SQLModel, table=True):
     __tablename__ = "student_link_codes"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    code: str = Field(unique=True, index=True)
+    code: str = Field(default_factory=_gerar_codigo, unique=True, index=True)
     student_id: UUID = Field(foreign_key="students.id")
-    created_by: UUID # FK para users.id — será adicionado quando autenticação estiver pronta
+    created_by: UUID = Field(foreign_key="users.id")
+    email_responsavel: str
+    nome_responsavel: str
     expires_at: datetime = Field(default_factory=_expiracao_padrao)
     is_used: bool = Field(default=False)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))

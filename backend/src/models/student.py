@@ -16,6 +16,7 @@ class Student(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     full_name: str
     email: str = Field(unique=True)
+    turma: str | None = Field(default=None)
     created_at: datetime | None = Field(default_factory=datetime.now)
 
     schools: list["School"] = Relationship(

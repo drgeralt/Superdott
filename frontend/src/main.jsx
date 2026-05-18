@@ -10,6 +10,7 @@ import Triage from './Triage.jsx';
 import FreeTriage from './FreeTriage.jsx';
 import Register from './Register.jsx';
 import TriagePLG from './TriagePLG.jsx';
+import ImportStudents from './ImportStudents.jsx';
 
 import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
 import MainLayout from './components/layout/MainLayout.jsx';
@@ -86,7 +87,7 @@ createRoot(document.getElementById('root')).render(
                 <Route path="/importar-alunos" element={
                     <ProtectedRoute allowedRoles={['Diretor']}>
                         <MainLayout>
-                            <PlaceholderPage />
+                            <ImportStudents />
                         </MainLayout>
                     </ProtectedRoute>
                 } />
