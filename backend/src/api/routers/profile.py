@@ -57,8 +57,7 @@ async def get_profile(
         avatar_url=current_user.avatar_url
     )
 
-UPLOAD_AVATAR_DIR = "uploads/avatars"
-os.makedirs(UPLOAD_AVATAR_DIR, exist_ok=True)
+from src.api.services.supabase_storage import storage_service
 
 @router.post("/avatar")
 async def upload_avatar(
@@ -70,11 +69,12 @@ async def upload_avatar(
     if file_ext not in ['jpg', 'jpeg', 'png']:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Formato não suportado")
 
-    file_path = os.path.join(UPLOAD_AVATAR_DIR, f"user_{current_user.id}.{file_ext}")
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    try:
+        public_url = await storage_service.upload_file(bucket="avatars", file=file)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
-    current_user.avatar_url = f"/{file_path}"
+    current_user.avatar_url = public_url
     session.add(current_user)
     await session.commit()
     return {"message": "Avatar atualizado", "avatar_url": current_user.avatar_url}
@@ -150,11 +150,12 @@ async def upload_student_avatar(
     if file_ext not in ['jpg', 'jpeg', 'png']:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Formato não suportado")
 
-    file_path = os.path.join(UPLOAD_AVATAR_DIR, f"student_{student_id}.{file_ext}")
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    try:
+        public_url = await storage_service.upload_file(bucket="avatars", file=file)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
-    student.avatar_url = f"/{file_path}"
+    student.avatar_url = public_url
     session.add(student)
     await session.commit()
     return {"message": "Avatar do estudante atualizado", "avatar_url": student.avatar_url}

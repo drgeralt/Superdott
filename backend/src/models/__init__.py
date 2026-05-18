@@ -8,6 +8,7 @@ from src.models.knowledge_base import KnowledgeBase
 from src.models.links import SchoolStudentLink, ParentStudentLink
 from src.models.school import School
 from src.models.student import Student
+from src.models.student_document import StudentDocument, StudentDocumentChunk
 from src.models.student_link_code import StudentLinkCode
 from src.models.token import Token
 from src.models.user import User, UserRole
@@ -26,6 +27,8 @@ __all__ = [
     "ParentStudentLink",
     "School",
     "Student",
+    "StudentDocument",
+    "StudentDocumentChunk",
     "StudentLinkCode",
     "Token",
     "User",
