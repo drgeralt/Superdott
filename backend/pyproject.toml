@@ -1,0 +1,35 @@
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+src = ["src"]
+exclude = [".venv", "__pycache__", ".pytest_cache", ".ruff_cache", "migrations"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "S", "UP"]
+ignore = ["D100", "D104"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/api/routers/*.py" = ["B008"]
+"tests/*.py" = ["S101", "S105", "S106"]
+
+[tool.bandit]
+exclude_dirs = [".venv", "tests", "migrations", "__pycache__"]
+targets = ["src"]
+skips = ["B101"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["."]
+filterwarnings = [
+    "ignore::cryptography.utils.CryptographyDeprecationWarning",
+    "ignore::pytest.PytestUnraisableExceptionWarning",
+    "ignore::sqlalchemy.exc.SAWarning",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["tests/*", ".venv/*", "migrations/*"]

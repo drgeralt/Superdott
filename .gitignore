@@ -9,9 +9,7 @@ ENV/
 .env.*
 !.env.example  # Mantém o exemplo para referência, mas ignora as chaves reais
 
-# --- Prisma (Gerado) ---
-# Ignoramos o cliente gerado para que ele seja reconstruído no container
-src/generated/
+
 
 # --- Banco de Dados Local ---
 # Caso você use SQLite em algum momento ou logs do Postgres
@@ -46,3 +44,7 @@ htmlcov/
 # --- OS específicos ---
 Thumbs.db
 desktop.ini
+
+# --- Local Storage (PDF Cache, etc) ---
+backend/storage/
+storage/
