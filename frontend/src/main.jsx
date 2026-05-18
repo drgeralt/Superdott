@@ -27,6 +27,16 @@ import MyChildren from './MyChildren.jsx';
 import ParentLinkCodes from './ParentLinkCodes.jsx';
 import GlobalMetrics from './GlobalMetrics.jsx';
 
+// Redireciona chamadas do fetch para a URL de API de produção dinamicamente
+const originalFetch = window.fetch;
+window.fetch = function (input, init) {
+    if (typeof input === 'string' && input.startsWith('/api')) {
+        const baseUrl = import.meta.env.VITE_API_URL || '';
+        input = `${baseUrl}${input}`;
+    }
+    return originalFetch(input, init);
+};
+
 createRoot(document.getElementById('root')).render(
     <StrictMode>
         <BrowserRouter>
