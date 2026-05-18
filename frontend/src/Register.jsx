@@ -1,12 +1,14 @@
 import { useState, useEffect, Suspense, lazy } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import useTriageStore from './store/useTriageStore';
 import useStudentStore from './store/useStudentStore';
+import useAuthStore from './store/useAuthStore';
 
 const BallPit = lazy(() => import('./components/auth/BallPit'));
 
 const Register = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { triageData, loadTriageData, clearTriageData } = useTriageStore();
     const fetchStudents = useStudentStore((state) => state.fetchStudents);
 
@@ -19,11 +21,28 @@ const Register = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    // Carrega os dados de triagem do localStorage no mount
+    // Multitenancy: Escolas
+    const [schools, setSchools] = useState([]);
+    const [selectedSchoolId, setSelectedSchoolId] = useState('');
+
+    // Carrega os dados de triagem do localStorage no mount e a role da URL
     useEffect(() => {
         loadTriageData();
+        
+        const params = new URLSearchParams(location.search);
+        const queryRole = params.get('role');
+        if (queryRole && ['Pai', 'Professor', 'Diretor'].includes(queryRole)) {
+            setRole(queryRole);
+        }
+
+        // Buscar escolas ativas
+        fetch('/api/auth/schools')
+            .then(res => res.json())
+            .then(data => setSchools(data))
+            .catch(err => console.error('Erro ao buscar escolas:', err));
+        
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [location.search]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -82,8 +101,9 @@ const Register = () => {
 
             const tokenData = await tokenRes.json();
             
-            // 3. Salva o token no localStorage para as requisições autenticadas
+            // 3. Salva o token no localStorage e no useAuthStore
             localStorage.setItem('superdott_token', tokenData.access_token);
+            useAuthStore.getState().setToken(tokenData.access_token);
 
             // 4. Limpa a triagem
             if (triageData) {
@@ -251,25 +271,29 @@ const Register = () => {
 
                             {/* Seleção de Perfil para Cadastro Seco */}
                             {!triageData && (
-                                <div className="space-y-1.5">
-                                    <label className="block font-label text-[10px] font-bold text-primary-navy uppercase tracking-wider ml-1" htmlFor="role">
-                                        Perfil de Acesso
-                                    </label>
-                                    <div className="relative">
-                                        <select
-                                            className="block w-full px-4 py-3 bg-surface-container-low border-b-2 border-outline-variant focus:border-primary-navy focus:ring-0 transition-all rounded-xl text-on-surface font-medium text-sm outline-none appearance-none"
-                                            id="role"
-                                            value={role}
-                                            onChange={(e) => setRole(e.target.value)}
-                                        >
-                                            <option value="Pai">Responsável / Pai / Mãe</option>
-                                            <option value="Professor">Docente / Professor</option>
-                                            <option value="Diretor">Coordenador / Diretor</option>
-                                        </select>
-                                        <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-on-surface-variant">
-                                            <span className="material-symbols-outlined">expand_more</span>
+                                <div className="space-y-4">
+                                    <div className="space-y-1.5">
+                                        <label className="block font-label text-[10px] font-bold text-primary-navy uppercase tracking-wider ml-1" htmlFor="role">
+                                            Perfil de Acesso
+                                        </label>
+                                        <div className="relative">
+                                            <select
+                                                className="block w-full px-4 py-3 bg-surface-container-low border-b-2 border-outline-variant focus:border-primary-navy focus:ring-0 transition-all rounded-xl text-on-surface font-medium text-sm outline-none appearance-none"
+                                                id="role"
+                                                value={role}
+                                                onChange={(e) => setRole(e.target.value)}
+                                            >
+                                                <option value="Pai">Responsável / Pai / Mãe</option>
+                                                <option value="Professor">Docente / Professor</option>
+                                                <option value="Diretor">Coordenador / Diretor</option>
+                                            </select>
+                                            <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-on-surface-variant">
+                                                <span className="material-symbols-outlined">expand_more</span>
+                                            </div>
                                         </div>
                                     </div>
+
+
                                 </div>
                             )}
 

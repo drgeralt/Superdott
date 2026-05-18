@@ -4,11 +4,11 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from datetime import timedelta
-
+from src.models.student import Student
 from src.core.database import get_session
 from src.core.security import verify_password, create_access_token
 from src.core.config import settings
-from src.models.user import User
+from src.models.user import User, UserRole
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -17,6 +17,15 @@ async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     session: Annotated[AsyncSession, Depends(get_session)]
 ):
+    # Check if virtual SuperAdmin
+    if form_data.username == settings.SUPERADMIN_EMAIL and form_data.password == settings.SUPERADMIN_PASSWORD:
+        access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": "superadmin", "role": UserRole.SuperAdmin.value},
+            expires_delta=access_token_expires
+        )
+        return {"access_token": access_token, "token_type": "bearer"}
+
     result = await session.exec(select(User).where(User.email == form_data.username))
     user = result.first()
     if not user or not verify_password(form_data.password, user.hashed_password):
@@ -38,8 +47,9 @@ from pydantic import BaseModel
 from src.core.security import get_password_hash
 from datetime import datetime, UTC
 from src.models.user import UserRole
-from src.models.student import Student
-from src.models.links import ParentStudentLink
+from uuid import UUID
+from src.models.school import School
+from src.models.links import ParentStudentLink, TeacherSchoolLink
 
 class StudentRegister(BaseModel):
     full_name: str
@@ -52,11 +62,27 @@ class UserRegister(BaseModel):
     accepted_tcle: bool
     student: StudentRegister | None = None
 
+class SchoolBasicInfo(BaseModel):
+    id: UUID
+    name: str
+
+@router.get("/schools", response_model=list[SchoolBasicInfo])
+async def list_public_schools(session: Annotated[AsyncSession, Depends(get_session)]):
+    result = await session.exec(select(School))
+    schools = result.all()
+    return [SchoolBasicInfo(id=s.id, name=s.name) for s in schools]
+
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register_user(
     payload: UserRegister,
     session: Annotated[AsyncSession, Depends(get_session)]
 ):
+    if payload.role == UserRole.SuperAdmin:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Não é permitido cadastrar um usuário com perfil Administrador."
+        )
+
     if not payload.accepted_tcle:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -79,6 +105,7 @@ async def register_user(
                 accepted_tcle=True,
                 tcle_accepted_at=datetime.now(UTC).replace(tzinfo=None)
             )
+
             session.add(user)
             await session.flush() # Populate user.id
 

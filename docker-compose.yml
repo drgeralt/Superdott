@@ -13,7 +13,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./init-db:/docker-entrypoint-initdb.d:z
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d superdott"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-superdott}" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -21,21 +21,23 @@ services:
   api:
     build: ./backend
     container_name: superdott_api
-    mem_limit: 1g 
+    mem_limit: 1g
     ports:
       - "8000:8000"
     env_file:
       - .env
     volumes:
-      - .:/app:cached
-    working_dir: /app/backend
+      # MAPEAMENTO CORRIGIDO: Mapeia apenas a pasta do backend para /app dentro do container
+      - ./backend:/app:cached
+    working_dir: /app
     command: >
-       sh -c "uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload"
+      sh -c "uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload"
     depends_on:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      # Adicionado -sS para o curl não poluir os logs do docker com progresso de download
+      test: [ "CMD", "curl", "-fIsS", "http://localhost:8000/health" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -50,7 +52,8 @@ services:
       api:
         condition: service_healthy
     volumes:
-      - ./frontend/src:/app/src:z
+      # Corrigido para garantir que o mapeamento bata com o WORKDIR interno do frontend
+      - ./frontend:/app:z
 
 volumes:
   postgres_data:

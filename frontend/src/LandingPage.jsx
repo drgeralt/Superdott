@@ -214,28 +214,40 @@ const LandingPage = () => {
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                            <div className="p-10 bg-slate-50 rounded-3xl border border-slate-200 flex flex-col justify-between items-start group hover:border-teal-custom/30 transition-colors">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                            <div className="p-8 bg-slate-50 rounded-3xl border border-slate-200 flex flex-col justify-between items-start group hover:border-teal-custom/30 transition-colors">
                                 <div>
-                                    <h4 className="font-headline font-black text-2xl text-primary-navy mb-4">Sou Pai ou Responsável</h4>
-                                    <p className="font-body text-slate-600 leading-relaxed mb-10">
+                                    <h4 className="font-headline font-black text-xl text-primary-navy mb-4">Sou Pai ou Responsável</h4>
+                                    <p className="font-body text-sm text-slate-600 leading-relaxed mb-8">
                                         Quero iniciar uma triagem de altas habilidades do meu filho para obter orientações e vincular o perfil com a instituição de ensino.
                                     </p>
                                 </div>
-                                <Link to="/triagem-plg" className="w-full bg-primary-navy text-white px-8 py-4 rounded-xl font-headline font-bold text-center hover:bg-teal-custom transition-colors">
+                                <Link to="/triagem-plg" className="w-full bg-primary-navy text-white px-6 py-3 rounded-xl font-headline font-bold text-center hover:bg-teal-custom transition-colors">
                                     Iniciar como Responsável
                                 </Link>
                             </div>
 
-                            <div className="p-10 bg-slate-50 rounded-3xl border border-slate-200 flex flex-col justify-between items-start group hover:border-teal-custom/30 transition-colors">
+                            <div className="p-8 bg-slate-50 rounded-3xl border border-slate-200 flex flex-col justify-between items-start group hover:border-teal-custom/30 transition-colors">
                                 <div>
-                                    <h4 className="font-headline font-black text-2xl text-primary-navy mb-4">Sou Escola ou Diretor</h4>
-                                    <p className="font-body text-slate-600 leading-relaxed mb-10">
+                                    <h4 className="font-headline font-black text-xl text-primary-navy mb-4">Sou Docente / Professor</h4>
+                                    <p className="font-body text-sm text-slate-600 leading-relaxed mb-8">
+                                        Quero me cadastrar para mapear alunos com altas habilidades e acessar ferramentas de auxílio educacional integradas com IA.
+                                    </p>
+                                </div>
+                                <Link to="/register?role=Professor" className="w-full bg-teal-custom text-white px-6 py-3 rounded-xl font-headline font-bold text-center hover:bg-primary-navy transition-colors">
+                                    Cadastrar como Professor
+                                </Link>
+                            </div>
+
+                            <div className="p-8 bg-slate-50 rounded-3xl border border-slate-200 flex flex-col justify-between items-start group hover:border-teal-custom/30 transition-colors">
+                                <div>
+                                    <h4 className="font-headline font-black text-xl text-primary-navy mb-4">Sou Escola ou Diretor</h4>
+                                    <p className="font-body text-sm text-slate-600 leading-relaxed mb-8">
                                         Quero registrar minha instituição escolar no Superdott para integrar diretores, docentes, emitir relatórios corporativos e PDIs.
                                     </p>
                                 </div>
-                                <Link to="/login" className="w-full bg-transparent border-2 border-primary-navy text-primary-navy px-8 py-4 rounded-xl font-headline font-bold text-center hover:bg-primary-navy hover:text-white transition-all flex items-center justify-center gap-2">
-                                    Registrar Instituição Escolar
+                                <Link to="/login" className="w-full bg-transparent border-2 border-primary-navy text-primary-navy px-6 py-3 rounded-xl font-headline font-bold text-center hover:bg-primary-navy hover:text-white transition-all flex items-center justify-center gap-2">
+                                    Registrar Instituição
                                     <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
                                 </Link>
                             </div>

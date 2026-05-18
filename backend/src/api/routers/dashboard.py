@@ -30,23 +30,91 @@ async def get_dashboard_summary(
         role = current_user.role
 
         # ----------------------------------------------------
-        # DIRETOR / SUPERADMIN
+        # SUPERADMIN
         # ----------------------------------------------------
-        if role in (UserRole.Diretor, UserRole.SuperAdmin):
-            # 1. Total de alunos vinculados
-            students_count_query = select(func.count(SchoolStudentLink.student_id))
+        if role == UserRole.SuperAdmin:
+            from src.models.school import School
+            students_count_query = select(func.count(Student.id))
             students_count = (await session.exec(students_count_query)).first() or 0
 
-            # 2. Professores ativos
             teachers_count_query = select(func.count(User.id)).where(User.role == UserRole.Professor)
             teachers_count = (await session.exec(teachers_count_query)).first() or 0
 
-            # 3. PDIs gerados no mês atual (UTC)
+            schools_count_query = select(func.count(School.id))
+            schools_count = (await session.exec(schools_count_query)).first() or 0
+
+            # Calculate averages across all students with triage completed
+            students_query = select(Student).where(Student.triage_completed == True)
+            students_res = await session.exec(students_query)
+            all_students = students_res.all()
+            
+            avg_intelectual = 0.0
+            avg_criativo = 0.0
+            avg_lideranca = 0.0
+            
+            if all_students:
+                avg_intelectual = round(sum(s.score_intelectual or 0 for s in all_students) / len(all_students), 2)
+                avg_criativo = round(sum(s.score_criativo or 0 for s in all_students) / len(all_students), 2)
+                avg_lideranca = round(sum(s.score_lideranca or 0 for s in all_students) / len(all_students), 2)
+
+            # Count total PDIs generated
+            pdis_count_res = await session.exec(
+                select(func.count(AuditLog.id)).where(AuditLog.action == AuditAction.PDI_GENERATED)
+            )
+            total_pdis = pdis_count_res.first() or 0
+
+            # Fetch 5 most recent audit logs
+            audit_logs_res = await session.exec(
+                select(AuditLog).order_by(AuditLog.created_at.desc()).limit(5)
+            )
+            audit_logs = audit_logs_res.all()
+            
+            recent_activities = []
+            for log in audit_logs:
+                user_res = await session.exec(select(User).where(User.id == log.user_id.int))
+                user = user_res.first()
+                user_email = user.email if user else "Sistema"
+                
+                recent_activities.append({
+                    "id": str(log.id),
+                    "user_email": user_email,
+                    "action": log.action,
+                    "created_at": log.created_at.strftime("%d/%m/%Y %H:%M"),
+                    "details": log.details or {}
+                })
+
+            return {
+                "role": role,
+                "metrics": {
+                    "total_students": students_count,
+                    "active_teachers": teachers_count,
+                    "total_schools": schools_count,
+                    "avg_intelectual": avg_intelectual,
+                    "avg_criativo": avg_criativo,
+                    "avg_lideranca": avg_lideranca,
+                    "total_pdis": total_pdis
+                },
+                "recent_activities": recent_activities,
+                "recent_students": [],
+                "alerts": []
+            }
+
+        # ----------------------------------------------------
+        # DIRETOR
+        # ----------------------------------------------------
+        elif role == UserRole.Diretor:
+            students_count_query = select(func.count(SchoolStudentLink.student_id)).where(SchoolStudentLink.school_id == current_user.school_id)
+            students_count = (await session.exec(students_count_query)).first() or 0
+
+            teachers_count_query = select(func.count(User.id)).where(User.role == UserRole.Professor, User.school_id == current_user.school_id)
+            teachers_count = (await session.exec(teachers_count_query)).first() or 0
+
             now = datetime.utcnow()
             first_day_of_month = datetime(now.year, now.month, 1)
             pdi_count_query = select(func.count(AuditLog.id)).where(
                 AuditLog.action == AuditAction.PDI_GENERATED,
                 AuditLog.created_at >= first_day_of_month
+                # Missing school link logic for PDI, assuming we just count them globally for now or skip it
             )
             pdi_count = (await session.exec(pdi_count_query)).first() or 0
 
@@ -65,10 +133,17 @@ async def get_dashboard_summary(
         # PROFESSOR
         # ----------------------------------------------------
         elif role == UserRole.Professor:
-            # 1. Todos os alunos do sistema
-            students_query = select(Student)
+            from src.models.links import TeacherSchoolLink, SchoolStudentLink
+            
+            # Fetch students from schools this teacher is linked to
+            students_query = (
+                select(Student)
+                .join(SchoolStudentLink, SchoolStudentLink.student_id == Student.id)
+                .join(TeacherSchoolLink, TeacherSchoolLink.school_id == SchoolStudentLink.school_id)
+                .where(TeacherSchoolLink.teacher_id == current_user.id)
+            )
             students_res = await session.exec(students_query)
-            students = students_res.all()
+            students = list({s.id: s for s in students_res.all()}.values())
 
             # 2. Última interação de chat para cada aluno
             sessions_query = select(ChatSession)
@@ -146,13 +221,13 @@ async def get_dashboard_summary(
                 answers_res = await session.exec(answers_query)
                 answers = answers_res.all()
 
-                if answers:
+                if answers or child.triage_completed:
                     scores = [float(a.score) for a in answers if a.score is not None]
                     overall_score = round(sum(scores) / len(scores), 2) if scores else None
                     triage = {
                         "completed": True,
                         "overall_score": overall_score,
-                        "completed_at": answers[0].created_at.strftime("%Y-%m-%d") if answers[0].created_at else None
+                        "completed_at": answers[0].created_at.strftime("%Y-%m-%d") if (answers and answers[0].created_at) else None
                     }
                 else:
                     triage = {
@@ -165,7 +240,11 @@ async def get_dashboard_summary(
                     "id": child_id_str,
                     "full_name": child.full_name,
                     "email": child.email,
-                    "triage": triage
+                    "triage": triage,
+                    "triage_completed": child.triage_completed,
+                    "score_intelectual": child.score_intelectual,
+                    "score_criativo": child.score_criativo,
+                    "score_lideranca": child.score_lideranca
                 })
 
                 if not triage["completed"]:
