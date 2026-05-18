@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 120
     RESEND_API_KEY: str = "re_mock_key"
     RESEND_FROM_EMAIL: str = "onboarding@resend.dev"
+    SUPABASE_URL: str | None = None
+    SUPABASE_KEY: str | None = None
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
@@ -22,5 +24,9 @@ class Settings(BaseSettings):
             self.DATABASE_URL = self.DATABASE_URL.strip("\"'")
         if self.GEMINI_API_KEY:
             self.GEMINI_API_KEY = self.GEMINI_API_KEY.strip("\"'")
+        if self.SUPABASE_URL:
+            self.SUPABASE_URL = self.SUPABASE_URL.strip("\"'")
+        if self.SUPABASE_KEY:
+            self.SUPABASE_KEY = self.SUPABASE_KEY.strip("\"'")
 
 settings = Settings()

@@ -17,8 +17,12 @@ from src.main import app
 _raw_url = os.getenv(
     "DATABASE_URL", "postgresql://admin:admin@localhost:5432/superdott"
 )
+_formatted_url = _raw_url
+if _formatted_url.startswith("postgresql://"):
+    _formatted_url = _formatted_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
 TEST_DATABASE_URL = (
-    _raw_url.replace("postgresql://", "postgresql+asyncpg://").rsplit("/", 1)[0]
+    _formatted_url.rsplit("/", 1)[0]
     + "/superdott_test"
 )
 

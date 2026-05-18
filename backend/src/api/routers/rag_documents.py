@@ -9,11 +9,9 @@ from src.models.user import User, UserRole
 from src.models.student_document import StudentDocument
 from src.api.deps import get_current_user
 
-router = APIRouter(prefix="/api/rag_documents", tags=["RAG Documents"])
+from src.api.services.supabase_storage import storage_service
 
-# Ensure upload directory exists
-UPLOAD_DIR = os.path.abspath(os.path.join(os.getcwd(), "uploads", "student_documents"))
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+router = APIRouter(prefix="/api/rag_documents", tags=["RAG Documents"])
 
 @router.post("/{student_id}/documents", status_code=status.HTTP_201_CREATED)
 async def upload_document(
@@ -30,21 +28,19 @@ async def upload_document(
     if file.content_type not in allowed:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tipo de arquivo não suportado.")
 
-    # Save file to disk
-    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-    filename = f"{student_id}_{timestamp}_{file.filename}".replace(" ", "_")
-    file_path = os.path.join(UPLOAD_DIR, filename)
-    
     file.file.seek(0)
     file_bytes = await file.read()
-    with open(file_path, "wb") as buffer:
-        buffer.write(file_bytes)
+
+    try:
+        public_url = await storage_service.upload_file(bucket="documents", file=file)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
     doc = StudentDocument(
         student_id=student_id,
         parent_id=current_user.id,
         filename=file.filename,
-        file_path=file_path,
+        file_path=public_url,
         shared_with_school=False,
         uploaded_at=datetime.utcnow(),
     )

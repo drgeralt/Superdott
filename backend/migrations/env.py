@@ -1,10 +1,12 @@
 import asyncio
+import os
 from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from sqlmodel import SQLModel
+from dotenv import load_dotenv
 
 from src.core.config import settings
 from src.models.answer import Answer
@@ -17,6 +19,8 @@ from src.models.school import School
 from src.models.student import Student
 from src.models.token import Token
 
+load_dotenv()
+
 config = context.config
 
 if config.config_file_name is not None:
@@ -26,8 +30,10 @@ target_metadata = SQLModel.metadata
 
 
 def get_async_url():
-    """Garante que a URL utilize o driver asyncpg"""
-    url = str(settings.DATABASE_URL)
+    """Garante que a URL utilize o driver asyncpg e a conexão direta para o Alembic"""
+    # Tenta pegar a URL de migração primeiro, se não achar, usa a padrão da API
+    url = os.getenv("SYNC_DATABASE_URL", str(settings.DATABASE_URL))
+    
     if url.startswith("postgres://"):
         url = url.replace("postgres://", "postgresql+asyncpg://", 1)
     elif url.startswith("postgresql://"):

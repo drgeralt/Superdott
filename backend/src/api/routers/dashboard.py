@@ -10,7 +10,7 @@ from src.core.database import get_session
 from src.api.deps import get_current_user
 from src.models.user import User, UserRole
 from src.models.student import Student
-from src.models.links import ParentStudentLink, SchoolStudentLink
+from src.models.links import ParentStudentLink, SchoolStudentLink, TeacherSchoolLink
 from src.models.audit_log import AuditLog, AuditAction
 from src.models.chat_session import ChatSession
 from src.models.answer import Answer
@@ -133,8 +133,6 @@ async def get_dashboard_summary(
         # PROFESSOR
         # ----------------------------------------------------
         elif role == UserRole.Professor:
-            from src.models.links import TeacherSchoolLink, SchoolStudentLink
-            
             # Fetch students from schools this teacher is linked to
             students_query = (
                 select(Student)
@@ -275,6 +273,8 @@ async def get_dashboard_summary(
             }
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erro ao carregar sumário do dashboard: {str(e)}"
