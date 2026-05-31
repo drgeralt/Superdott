@@ -24,7 +24,10 @@ class StudentLinkCode(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     code: str = Field(default_factory=_gerar_codigo, unique=True, index=True)
     student_id: UUID = Field(foreign_key="students.id")
-    created_by: UUID = Field(foreign_key="users.id")
+    created_by: int = Field(
+        foreign_key="user.id",
+        nullable=True
+    )
     email_responsavel: str
     nome_responsavel: str
     expires_at: datetime = Field(default_factory=_expiracao_padrao)
