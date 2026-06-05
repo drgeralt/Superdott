@@ -1,4 +1,8 @@
+import importlib
 import os
+import sys
+import uuid
+from pathlib import Path
 
 import asyncpg
 import pytest
@@ -12,7 +16,17 @@ from sqlalchemy.pool import NullPool
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+root_dir = str(Path(__file__).parent.parent)
+if root_dir not in sys.path:
+    sys.path.insert(0, root_dir)
+
+import src.models
+importlib.reload(src.models)
+
+from src.core.database import get_session
 from src.main import app
+from src.models.user import User, UserRole
+
 
 _raw_url = os.getenv(
     "DATABASE_URL", "postgresql://admin:admin@localhost:5432/superdott"
@@ -38,7 +52,6 @@ async def ensure_test_database_exists(database_url: str) -> None:
             port=url.port or 5432,
         )
     except Exception:
-        # If the admin connection fails, let the test framework raise the correct error.
         raise
 
     try:
@@ -51,22 +64,25 @@ async def ensure_test_database_exists(database_url: str) -> None:
 
 
 @pytest_asyncio.fixture(autouse=True, scope="session")
-async def setup_test_database():
-    """Cria as tabelas antes dos testes e apaga depois."""
-    import src.models  # noqa: F401
+async def setup_test_database(request):
+    """Cria as tabelas antes dos testes e apaga depois.
+    Pulado automaticamente para testes marcados com no_db ou que não usam banco.
+    """
+    # Se TODOS os testes da sessão são no_db, pula
+    if all(
+        item.get_closest_marker("no_db")
+        for item in request.session.items
+    ):
+        yield
+        return
 
+    import src.models  # noqa: F401
     await ensure_test_database_exists(TEST_DATABASE_URL)
 
     engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
     async with engine.begin() as conn:
-        # --> A LINHA MÁGICA QUE SALVA O CI ESTÁ AQUI:
         await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
-
         await conn.run_sync(SQLModel.metadata.create_all)
-        
-        # Insere usuário mock (id=9999) usado pelo override_get_current_user
-        await conn.execute(text("INSERT INTO \"user\" (id, email, hashed_password, role, is_active, accepted_tcle) VALUES (9999, 'test@test.com', 'hashed', 'SuperAdmin', true, true) ON CONFLICT DO NOTHING"))
-
     await engine.dispose()
 
     yield
@@ -79,32 +95,19 @@ async def setup_test_database():
 
 @pytest_asyncio.fixture()
 async def db_session() -> AsyncSession:
-    """Sessão exclusiva para inserir dados de teste diretamente no banco."""
+    """Sessão de banco para testes."""
     engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
     factory = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-    session = factory()
-    try:
+
+    async with factory() as session:
         yield session
-    finally:
-        try:
-            await session.close()
-        except Exception:  # noqa: S110
-            pass
-        try:
-            await engine.dispose()
-        except Exception:  # noqa: S110
-            pass
+
+    await engine.dispose()
 
 
 @pytest.fixture
 async def async_client() -> AsyncClient:
-    """
-    Cliente HTTP que usa sua PRÓPRIA sessão de banco — separada do db_session.
-    Isso evita o erro 'another operation is in progress' do asyncpg.
-    """
-    from src.core.database import get_session
-    from src.api.deps import get_current_user
-    from src.models.user import User, UserRole
+    """Cliente HTTP assíncrono para testes de API."""
 
     async def override_get_session():
         engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
@@ -114,7 +117,13 @@ async def async_client() -> AsyncClient:
         await engine.dispose()
 
     async def override_get_current_user():
-        return User(id=9999, email="test@test.com", hashed_password="hashed", role=UserRole.SuperAdmin, is_active=True)
+        return User(
+            id=9999,
+            email="test@test.com",
+            hashed_password="hashed",
+            role=UserRole.SuperAdmin,
+            is_active=True,
+        )
 
     app.dependency_overrides[get_session] = override_get_session
     app.dependency_overrides[get_current_user] = override_get_current_user
@@ -125,23 +134,12 @@ async def async_client() -> AsyncClient:
         yield client
 
 
-@pytest.fixture
-async def db_session() -> AsyncSession:
-    """Fixture que fornece uma sessão de banco de dados para testes."""
-    engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
-    factory = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-    async with factory() as session:
-        yield session
-    await engine.dispose()
-
-
-import uuid
-
 @pytest_asyncio.fixture()
 async def chat_student_id():
-    """Cria um aluno isolado no banco e limpa após o teste."""
+    """Cria um aluno isolado para testes de chat."""
     engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
     student_id = str(uuid.uuid4())
+
     async with AsyncSession(engine) as session:
         await session.exec(
             text("INSERT INTO students (id, full_name, email) VALUES (:id, :name, :email)"),
@@ -155,7 +153,7 @@ async def chat_student_id():
 
     yield student_id
 
-    # Limpeza (Teardown)
+    # Limpeza
     async with AsyncSession(engine) as session:
         try:
             await session.exec(
